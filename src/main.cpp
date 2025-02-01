@@ -8,4 +8,11 @@ int main(int ac, char** av) {
 
     int         port = std::atoi(av[1]);
     std::string password(av[2]);
+
+    try {
+        Server(port, password);
+    }
+    catch (std::exception& e) {
+        std::cerr << "Error: " << e.what() << '\n';
+    }
 }
