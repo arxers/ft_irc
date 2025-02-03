@@ -1,0 +1,72 @@
+#include "../inc/Client.hpp"
+
+// private:
+
+
+// public:
+void    Client::authenticate(const std::string& password) {
+    if (password == this->_password)
+        this->_authenticated = true;
+}
+
+void    Client::addChannel(const std::string& channel) {
+    (void)channel;
+}
+void    Client::removeChannel(const std::string& channel) {
+    (void)channel;
+}
+
+// Predicates, getters, setters
+bool    Client::isAuthenticated() const {
+    return (this->_authenticated == true);
+}
+
+bool    Client::isConnected() const {
+    return (this->_socket_fd != -1);
+}
+
+int Client::getSocket() const {
+    return (this->_socket_fd);
+}
+const std::string&  Client::getNickname() const {
+    return (this->_nickname);
+}
+const std::string&  Client::getUsername() const {
+    return (this->_username);
+}
+const std::vector<std::string>& Client::getChannels() const {
+    return (this->_channels);
+}
+
+void    Client::setNickname(const std::string& nickname) {
+    this->_nickname = nickname;
+}
+
+Client::Client() : _socket_fd(0), _authenticated(false)
+{}
+
+Client::Client(int socket_fd, struct sockaddr_in addr) :
+_socket_fd(socket_fd),
+_addr(addr),
+_authenticated(false)
+{}
+
+Client::Client(const Client& rhs) {
+    if (this != &rhs)
+        *this = rhs;
+}
+
+Client::~Client() {}
+
+Client& Client::operator=(const Client& rhs) {
+    if (this != &rhs) {
+        this->_socket_fd = rhs._socket_fd;
+        this->_addr = rhs._addr;
+        this->_authenticated = rhs._authenticated;
+        this->_nickname = rhs._nickname;
+        this->_username = rhs._username;
+        this->_password = rhs._password;
+        this->_channels = rhs._channels;
+    }
+    return (*this);
+}

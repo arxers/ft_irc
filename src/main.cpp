@@ -10,7 +10,9 @@ int main(int ac, char** av) {
     std::string password(av[2]);
 
     try {
-        Server(port, password);
+        Server server(port, password);
+        server.run();
+        
     }
     catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';

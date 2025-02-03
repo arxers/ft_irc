@@ -11,13 +11,12 @@ private:
 
     bool                _authenticated;
     std::string         _nickname;
-    const std::string   _username;
+    std::string         _username;
+    std::string         _password;
 
     std::vector<std::string> _channels;
 
-    Client();
-    Client(const Client& rhs);
-    Client& operator=(const Client& rhs);
+
 public:
     void    authenticate(const std::string& password);
     void    addChannel(const std::string& channel);
@@ -33,6 +32,10 @@ public:
 
     void    setNickname(const std::string& nickname);
 
-    Client(int socket_fd);
+    Client();
+    Client(const Client& rhs);
+    Client(int socket_fd, struct sockaddr_in addr);
     ~Client();
+
+    Client& operator=(const Client& rhs);
 };
