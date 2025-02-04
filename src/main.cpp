@@ -1,5 +1,12 @@
 #include "../inc/Server.hpp"
 
+volatile sig_atomic_t running = false;
+
+static void signal_handler(int) {
+    running = false;
+    std::cout << '\n';
+}
+
 int main(int ac, char** av) {
     if (ac != 3) {
         std::cerr << "Usage: ./ircserv <port> <password>\n";
@@ -9,6 +16,7 @@ int main(int ac, char** av) {
     int         port = std::atoi(av[1]);
     std::string password(av[2]);
 
+    signal(SIGINT, signal_handler);
     try {
         Server server(port, password);
         server.run();

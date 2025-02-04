@@ -11,10 +11,14 @@
 #include <poll.h>
 #include <vector>
 #include "Client.hpp"
+#include <csignal>
 
 #define MAX_CLIENTS 100
+#define BUFFER_SIZE 512
 
 class Client;
+
+extern volatile sig_atomic_t running;
 
 class Server {
 private:
