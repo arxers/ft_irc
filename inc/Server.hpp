@@ -18,23 +18,24 @@ class Client;
 
 class Server {
 private:
-    int         _socket_fd;
+    int         _listeningSocket;
     int         _port;
     std::string _password;
 
     std::map<int, Client> _clients;
-    std::vector<struct pollfd>  _fds;
 
     int         _clientCount;
-
-    int createSocket();
 
     Server();
     Server(const Server& rhs);
     Server& operator=(const Server& rhs);
+
+    int     _createSocket();
+    void    _addClient(std::vector<pollfd>& poll_fds);
+    void    _removeClient(int fd, std::vector<pollfd>& poll_fds);
+    
 public:
     void    run();
-    void    addClient(int socket_fd, struct sockaddr_in addr);
 
     Server(int port, std::string password);
     ~Server();

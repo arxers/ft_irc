@@ -1,60 +1,6 @@
 #include "../inc/Server.hpp"
 
-void    Server::addClient(int socket_fd, struct sockaddr_in addr) {
-    if (this->_clientCount < MAX_CLIENTS) {
-        std::cout << "new client connected\n";
-        Client  newClient(socket_fd, addr);
-        this->_clients[socket_fd] = newClient;
-        struct pollfd   new_pollfd;
-        new_pollfd.fd = socket_fd;
-        new_pollfd.events = POLLIN;
-        new_pollfd.revents = 0;
-        this->_fds.push_back(new_pollfd);
-    }
-    else {
-        close(socket_fd);
-    }
-}
-
-void    Server::run() {
-
-    struct sockaddr_in  clientAddr;
-    socklen_t   clientLen = sizeof(clientAddr);
-    while (true) {
-        int pollResult = poll(this->_fds.data(), this->_fds.size(), -1);
-        if (pollResult == -1) {
-            std::cout << "poll failed\n";
-        }
-        for (size_t i = 0; i < this->_fds.size(); ++i) {
-            if (this->_fds[i].revents & POLLIN) {
-                if (this->_fds[i].fd == this->_socket_fd) {
-                    int client_fd = accept(this->_socket_fd, (struct sockaddr*)&clientAddr, &clientLen);
-                    if (client_fd != -1)
-                        addClient(client_fd, clientAddr);
-                }
-                else {
-                    ; // client
-                }
-            }
-        }
-    }
-}
-
-Server::Server(int port, std::string password) :
-_port(port), _password(password) {
-    this->_socket_fd = createSocket();
-    struct pollfd   pollfd;
-    pollfd.fd = this->_socket_fd;
-    pollfd.events = POLLIN;
-    pollfd.revents = 0;
-    this->_fds.push_back(pollfd);
-}
-
-Server::~Server() {
-    close(this->_socket_fd);
-}
-
-int Server::createSocket() {
+int Server::_createSocket() {
     int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd == -1)
         throw std::runtime_error("Failed to open socket");
@@ -76,6 +22,75 @@ int Server::createSocket() {
         throw std::runtime_error("listen() failed");
 
     return (socket_fd);
+}
+
+void    Server::_addClient(std::vector<struct pollfd>& poll_fds) {
+    sockaddr_in clientAddr;
+    socklen_t   clientLen = sizeof(clientAddr);
+
+    int client_fd = accept(this->_listeningSocket, (struct sockaddr*)&clientAddr, &clientLen);
+    if (client_fd == -1)
+        return ;
+
+    if (this->_clientCount < MAX_CLIENTS) {
+        this->_clientCount++;
+        std::cout << "new client connected\n";
+        this->_clients[client_fd] = Client(client_fd, clientAddr);
+        struct pollfd   client_pfd = {client_fd, POLLIN, 0};
+        poll_fds.push_back(client_pfd);
+    }
+    else
+        close(client_fd);
+}
+
+void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
+    this->_clients.erase(socket_fd);
+    for (std::vector<pollfd>::iterator it = poll_fds.begin(); it != poll_fds.end(); ++it) {
+        if (it->fd == socket_fd) {
+            poll_fds.erase(it);
+            this->_clientCount--;
+            close(socket_fd);
+            return ;
+        }
+    }
+}
+
+void    Server::run() {
+    std::vector<struct pollfd>  poll_fds;
+
+    struct pollfd   server_pfd = {this->_listeningSocket, POLLIN, 0};
+    poll_fds.push_back(server_pfd);
+
+    while (true) {
+        int pollResult = poll(poll_fds.data(), poll_fds.size(), -1);
+        if (pollResult == -1) {
+            std::cout << "poll failed\n";
+        }
+        for (size_t i = 0; i < poll_fds.size(); ++i) {
+            if (poll_fds[i].revents & POLLIN) {
+                if (poll_fds[i].fd == this->_listeningSocket) {
+                    _addClient(poll_fds);
+                }
+                else {
+                    ; // client
+                }
+            }
+        }
+    }
+}
+
+Server::Server(int port, std::string password) :
+_port(port), _password(password) {
+    this->_listeningSocket = _createSocket();
+
+}
+
+Server::~Server() {
+    close(this->_listeningSocket);
+
+    for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        close(it->first);
+    }
 }
 
 Server::Server() {}
