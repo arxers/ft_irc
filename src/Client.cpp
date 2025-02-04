@@ -28,6 +28,11 @@ bool    Client::isConnected() const {
 int Client::getSocket() const {
     return (this->_socket_fd);
 }
+
+const std::string  Client::getIp() const {
+    return (inet_ntoa(this->_addr.sin_addr));
+}
+
 const std::string&  Client::getNickname() const {
     return (this->_nickname);
 }

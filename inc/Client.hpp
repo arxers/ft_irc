@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 class Client {
 private:
@@ -26,6 +27,7 @@ public:
     bool    isAuthenticated() const;
     bool    isConnected() const;
     int     getSocket() const;
+    const std::string   getIp() const;
     const std::string&  getNickname() const;
     const std::string&  getUsername() const;
     const std::vector<std::string>& getChannels() const;
