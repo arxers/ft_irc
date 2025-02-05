@@ -38,6 +38,14 @@ void    Server::_addClient(std::vector<struct pollfd>& poll_fds) {
         struct pollfd   client_pfd = {client_fd, POLLIN, 0};
         poll_fds.push_back(client_pfd);
         std::cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
+
+        std::string msg(inet_ntoa(clientAddr.sin_addr));
+            msg += " connected\n";
+        for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+            if (it->first != client_fd) {
+                send(it->first, msg.c_str(), msg.size(), 0);
+            }
+        }
     }
     else
         close(client_fd);
@@ -63,7 +71,7 @@ void    Server::run() {
     struct pollfd   server_pfd = {this->_listeningSocket, POLLIN, 0};
     poll_fds.push_back(server_pfd);
 
-    char    buf[512];
+    char    buf[BUFFER_SIZE];
     while (running) {
         int pollResult = poll(poll_fds.data(), poll_fds.size(), -1);
         if (pollResult == -1) {

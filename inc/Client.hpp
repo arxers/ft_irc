@@ -10,6 +10,7 @@ private:
     int                 _socket_fd;
     struct sockaddr_in  _addr;
 
+    bool                _op;
     bool                _authenticated;
     std::string         _nickname;
     std::string         _username;
@@ -19,11 +20,12 @@ private:
 
 
 public:
-    void    authenticate(const std::string& password);
+    void    authenticate();
     void    addChannel(const std::string& channel);
     void    removeChannel(const std::string& channel);
 
     // Predicates, getters, setters
+    bool    isOperator() const ;
     bool    isAuthenticated() const;
     bool    isConnected() const;
     int     getSocket() const;

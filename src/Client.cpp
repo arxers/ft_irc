@@ -4,9 +4,8 @@
 
 
 // public:
-void    Client::authenticate(const std::string& password) {
-    if (password == this->_password)
-        this->_authenticated = true;
+void    Client::authenticate() {
+    this->_authenticated = true;
 }
 
 void    Client::addChannel(const std::string& channel) {
@@ -17,6 +16,11 @@ void    Client::removeChannel(const std::string& channel) {
 }
 
 // Predicates, getters, setters
+
+bool    Client::isOperator() const {
+    return (this->_op == true);
+}
+
 bool    Client::isAuthenticated() const {
     return (this->_authenticated == true);
 }
@@ -53,6 +57,7 @@ Client::Client() : _socket_fd(0), _authenticated(false)
 Client::Client(int socket_fd, struct sockaddr_in addr) :
 _socket_fd(socket_fd),
 _addr(addr),
+_op(false),
 _authenticated(false)
 {}
 
@@ -67,6 +72,7 @@ Client& Client::operator=(const Client& rhs) {
     if (this != &rhs) {
         this->_socket_fd = rhs._socket_fd;
         this->_addr = rhs._addr;
+        this->_op = rhs._op;
         this->_authenticated = rhs._authenticated;
         this->_nickname = rhs._nickname;
         this->_username = rhs._username;
