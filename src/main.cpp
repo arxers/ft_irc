@@ -13,7 +13,7 @@ int main(int ac, char** av) {
         return (EXIT_FAILURE);
     }
 
-    int         port = std::atoi(av[1]);
+    std::string port(av[1]);
     std::string password(av[2]);
 
     signal(SIGINT, signal_handler);

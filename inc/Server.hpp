@@ -12,6 +12,7 @@
 #include <vector>
 #include "Client.hpp"
 #include <csignal>
+#include <netdb.h>
 
 #define MAX_CLIENTS 100
 #define BUFFER_SIZE 512
@@ -23,7 +24,7 @@ extern volatile sig_atomic_t running;
 class Server {
 private:
     int         _listeningSocket;
-    int         _port;
+    std::string _port;
     std::string _password;
 
     std::map<int, Client> _clients;
@@ -41,6 +42,6 @@ private:
 public:
     void    run();
 
-    Server(int port, std::string password);
+    Server(std::string port, std::string password);
     ~Server();
 };

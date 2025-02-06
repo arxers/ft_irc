@@ -1,26 +1,43 @@
 #include "../inc/Server.hpp"
 
 int Server::_createSocket() {
-    int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (socket_fd == -1)
-        throw std::runtime_error("Failed to open socket");
-    
-    int opt = 1;
-    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
-        throw std::runtime_error("setsockopt() failed");
+    struct addrinfo hints = {}, *res, *p;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    if (getaddrinfo(NULL, this->_port.c_str(), &hints, &res) == -1)
+        throw std::runtime_error("Failed to get address info");
 
-    struct sockaddr_in addr;
-    std::memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(this->_port);
+    int socket_fd = -1;
+    for (p = res; p != NULL; p = p->ai_next) {
+        socket_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (socket_fd == -1)
+            continue ;
 
-    if (bind(socket_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
-        throw std::runtime_error("bind() failed");
+        int opt = 1;
+        if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+            std::cerr << "setsockopt() failed\n";
+            continue ;
+        }
 
-    if (listen(socket_fd, MAX_CLIENTS) == -1)
+        if (bind(socket_fd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(socket_fd);
+            continue ;
+        }
+        break ;
+    }
+    if (socket_fd == -1) {
+        freeaddrinfo(res);
+        throw std::runtime_error("Failed to bind socket");
+    }
+
+    if (listen(socket_fd, MAX_CLIENTS) == -1) {
+        close(socket_fd);
+        freeaddrinfo(res);
         throw std::runtime_error("listen() failed");
+    }
 
+    freeaddrinfo(res);
     return (socket_fd);
 }
 
@@ -102,7 +119,7 @@ void    Server::run() {
     }
 }
 
-Server::Server(int port, std::string password) :
+Server::Server(std::string port, std::string password) :
 _port(port), _password(password) {
     this->_listeningSocket = _createSocket();
 
