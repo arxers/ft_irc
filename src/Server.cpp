@@ -120,7 +120,7 @@ void    Server::run() {
 }
 
 Server::Server(std::string port, std::string password) :
-_port(port), _password(password) {
+_port(port), _password(password), _clientCount(0) {
     this->_listeningSocket = _createSocket();
 
 }
