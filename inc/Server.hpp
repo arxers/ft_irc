@@ -32,8 +32,8 @@ private:
     int         _clientCount;
 
     Server();
-    Server(const Server& rhs);
-    Server& operator=(const Server& rhs);
+    Server(const Server&);
+    Server& operator=(const Server&);
 
     int     _createSocket();
     void    _addClient(std::vector<pollfd>& poll_fds);

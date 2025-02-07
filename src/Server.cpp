@@ -134,12 +134,5 @@ Server::~Server() {
 }
 
 Server::Server() {}
-
-Server::Server(const Server& rhs) {
-    (void)rhs;
-}
-
-Server& Server::operator=(const Server& rhs) {
-    (void)rhs;
-    return (*this);
-}
+Server::Server(const Server&) {}
+Server& Server::operator=(const Server&) { return (*this); }
