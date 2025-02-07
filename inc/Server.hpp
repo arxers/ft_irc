@@ -14,6 +14,8 @@
 #include <csignal>
 #include <netdb.h>
 
+#include "Numerics.hpp"
+
 #define MAX_CLIENTS 100
 #define BUFFER_SIZE 512
 

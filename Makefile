@@ -1,5 +1,5 @@
 NAME = ircserv
-SRC = src/main.cpp src/Server.cpp src/Client.cpp
+SRC = src/main.cpp src/Server.cpp src/Client.cpp src/Numerics.cpp
 
 OBJ = $(SRC:.cpp=.o)
 DEP = $(SRC:.cpp=.d)
