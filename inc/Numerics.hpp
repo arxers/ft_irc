@@ -4,6 +4,8 @@
 
 using std::string;
 
+#define END "\r\n"
+
 class Numerics {
 private:
     Numerics();

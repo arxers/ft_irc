@@ -1,7 +1,5 @@
 #include "../inc/Numerics.hpp"
 
-#define END "\r\n"
-
 string  Numerics::RPL_WELCOME(const string& server, const string& nick) {
     return (":" + server + " 001 " + nick + " :Welcome to the IRC Network, " + nick + END); }
 
