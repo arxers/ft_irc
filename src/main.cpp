@@ -17,6 +17,7 @@ int main(int ac, char** av) {
     std::string password(av[2]);
 
     signal(SIGINT, signal_handler);
+    
     try {
         Server server(port, password);
         server.run();

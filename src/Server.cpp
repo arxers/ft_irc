@@ -123,10 +123,15 @@ void    Server::run() {
     }
 }
 
+static bool isValidPort(int n) {
+    return (n >= 1024 && n <= 49151);
+}
+
 Server::Server(std::string port, std::string password) :
 _port(port), _password(password), _clientCount(0) {
+    if (!isValidPort(std::atoi(this->_port.c_str())))
+        throw std::invalid_argument("Port must be within 1024-49151");
     this->_listeningSocket = _createSocket();
-
 }
 
 Server::~Server() {
