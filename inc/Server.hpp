@@ -40,6 +40,7 @@ private:
     int     _createSocket();
     void    _addClient(std::vector<pollfd>& poll_fds);
     void    _removeClient(int fd, std::vector<pollfd>& poll_fds);
+    void    _handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd);
     
 public:
     void    run();

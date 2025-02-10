@@ -81,6 +81,25 @@ void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
     }
 }
 
+void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd) {
+    char    buf[BUFFER_SIZE];
+
+    int bytesRead = recv(client_pfd.fd, buf, BUFFER_SIZE - 1, 0);
+    if (bytesRead == 0) {
+        _removeClient(client_pfd.fd, poll_fds);
+        return ;
+    }
+    buf[bytesRead] = '\0';
+    std::cout << this->_clients[client_pfd.fd].getIp() << ": " << buf;
+    std::string msg(this->_clients[client_pfd.fd].getIp());
+    msg += ": " + std::string(buf);
+    for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        if (it->first != client_pfd.fd) {
+            send(it->first, msg.c_str(), msg.size(), 0);
+        }
+    }
+}
+
 void    Server::run() {
     std::vector<struct pollfd>  poll_fds;
 
@@ -88,7 +107,6 @@ void    Server::run() {
     struct pollfd   server_pfd = {this->_listeningSocket, POLLIN, 0};
     poll_fds.push_back(server_pfd);
 
-    char    buf[BUFFER_SIZE];
     while (running) {
         int pollResult = poll(poll_fds.data(), poll_fds.size(), -1);
         if (pollResult == -1) {
@@ -98,22 +116,8 @@ void    Server::run() {
             if (poll_fds[i].revents & POLLIN) {
                 if (poll_fds[i].fd == this->_listeningSocket)
                     _addClient(poll_fds);
-                else {
-                    int bytesRead = recv(poll_fds[i].fd, buf, BUFFER_SIZE - 1, 0);
-                    if (bytesRead == 0) {
-                        _removeClient(poll_fds[i].fd, poll_fds);
-                        continue ;
-                    }
-                    buf[bytesRead] = '\0';
-                    std::cout << this->_clients[poll_fds[i].fd].getIp() << ": " << buf;
-                    std::string msg(this->_clients[poll_fds[i].fd].getIp());
-                    msg += ": " + std::string(buf);
-                    for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-                        if (it->first != poll_fds[i].fd) {
-                            send(it->first, msg.c_str(), msg.size(), 0);
-                        }
-                    }
-                }
+                else
+                    _handleClient(poll_fds, poll_fds[i]);
             }
         }
     }
