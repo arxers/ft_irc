@@ -17,7 +17,7 @@
 #include "Numerics.hpp"
 
 #define MAX_CLIENTS 100
-#define BUFFER_SIZE 512
+#define MAX_MSG_LEN 5
 
 class Client;
 
@@ -30,7 +30,6 @@ private:
     std::string _password;
 
     std::map<int, Client> _clients;
-
     int         _clientCount;
 
     Server();
@@ -41,6 +40,8 @@ private:
     void    _addClient(std::vector<pollfd>& poll_fds);
     void    _removeClient(int fd, std::vector<pollfd>& poll_fds);
     void    _handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd);
+
+    void    _truncateAndSend(int fd, std::string str);
     
 public:
     void    run();

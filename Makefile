@@ -4,7 +4,7 @@ SRC = src/main.cpp src/Server.cpp src/Client.cpp src/Numerics.cpp
 OBJ = $(SRC:.cpp=.o)
 DEP = $(SRC:.cpp=.d)
 
-CXX = c++
+CXX = @c++
 CXXFLAGS = -Wall -Wextra -Werror -MMD -std=c++98
 
 RED		= \033[1;31m

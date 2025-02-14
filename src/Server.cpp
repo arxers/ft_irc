@@ -81,23 +81,53 @@ void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
     }
 }
 
-void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd) {
-    char    buf[BUFFER_SIZE];
+// void    Server::_parseClientMsg(int socket_fd) {
 
-    int bytesRead = recv(client_pfd.fd, buf, BUFFER_SIZE - 1, 0);
-    if (bytesRead == 0) {
-        _removeClient(client_pfd.fd, poll_fds);
-        return ;
+// }
+
+void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd) {
+    char        buf[10];
+    std::string fullMsg;
+    int         bytesRead;
+
+    while (true) {
+        bytesRead = recv(client_pfd.fd, buf, sizeof(buf) - 1, 0);
+        if (bytesRead == 0) {
+            _removeClient(client_pfd.fd, poll_fds);
+            return ;
+        }
+        fullMsg.append(buf, bytesRead);
+        while (fullMsg.find("\r\n") != std::string::npos) {
+            size_t pos = fullMsg.find("\r\n");
+            std::string msg = fullMsg.substr(0, pos + 2);
+            fullMsg.erase(0, pos + 2);
+            if (msg.length() > MAX_MSG_LEN) {
+                msg = msg.substr(0, MAX_MSG_LEN);
+                msg[msg.length() - 2] = '\r';
+                msg[msg.length() - 1] = '\n';
+            }
+            fullMsg.erase(0, pos + 2);
+            std::cout << msg;
+        }
     }
+        
+    
     buf[bytesRead] = '\0';
     std::cout << this->_clients[client_pfd.fd].getIp() << ": " << buf;
     std::string msg(this->_clients[client_pfd.fd].getIp());
     msg += ": " + std::string(buf);
     for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        if (it->first != client_pfd.fd) {
-            send(it->first, msg.c_str(), msg.size(), 0);
-        }
+        // if (it->first == client_pfd.fd) {
+        //     _truncateAndSend(client_pfd.fd, fullMessage);
+        // }
     }
+}
+
+void    Server::_truncateAndSend(int fd, std::string str) {
+    if (str.size() > 512)
+        str.resize(510);
+    str = str.substr() += "\r\n";
+    send(fd, str.c_str(), str.size(), 0);
 }
 
 void    Server::run() {
