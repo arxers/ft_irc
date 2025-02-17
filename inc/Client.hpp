@@ -9,6 +9,8 @@ class Client {
 private:
     int                 _socket_fd;
     struct sockaddr_in  _addr;
+    std::string         _inputBuffer;
+    std::string         _outputBuffer;
 
     bool                _op;
     bool                _authenticated;
@@ -29,6 +31,8 @@ public:
     bool    isAuthenticated() const;
     bool    isConnected() const;
     int     getSocket() const;
+    std::string&    getInputBuffer();
+    std::string&    getOutputBuffer();
     const std::string   getIp() const;
     const std::string&  getNickname() const;
     const std::string&  getUsername() const;

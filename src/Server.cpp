@@ -81,54 +81,49 @@ void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
     }
 }
 
-// void    Server::_parseClientMsg(int socket_fd) {
+std::string Server::_generateResponse(std::string& msg) {
+    std::istringstream  iss(msg);
+    std::string         token;
 
-// }
+    iss >> token;
+    // std::cout << token << std::endl;
+    if (token == "PING")
+        std::cout << "PONG\n";
+    return ("heh\n");
+}
 
 void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd) {
-    char        buf[10];
-    std::string fullMsg;
-    int         bytesRead;
+    char        buf[MAX_MSG_LEN + 1];
+    int         receivedBytes;
 
-    while (true) {
-        bytesRead = recv(client_pfd.fd, buf, sizeof(buf) - 1, 0);
-        if (bytesRead == 0) {
-            _removeClient(client_pfd.fd, poll_fds);
-            return ;
-        }
-        fullMsg.append(buf, bytesRead);
-        while (fullMsg.find("\r\n") != std::string::npos) {
-            size_t pos = fullMsg.find("\r\n");
-            std::string msg = fullMsg.substr(0, pos + 2);
-            fullMsg.erase(0, pos + 2);
-            if (msg.length() > MAX_MSG_LEN) {
-                msg = msg.substr(0, MAX_MSG_LEN);
-                msg[msg.length() - 2] = '\r';
-                msg[msg.length() - 1] = '\n';
-            }
-            fullMsg.erase(0, pos + 2);
-            std::cout << msg;
-        }
+    receivedBytes = recv(client_pfd.fd, buf, sizeof(buf), 0);
+    if (receivedBytes == 0) {
+        _removeClient(client_pfd.fd, poll_fds);
+        return ;
     }
-        
+
+    std::string &inputBuffer = this->_clients[client_pfd.fd].getInputBuffer();
+    inputBuffer.append(buf, receivedBytes);
+    if (inputBuffer.length() > MAX_MSG_LEN) {
+        inputBuffer = inputBuffer.substr(0, MAX_MSG_LEN - 2);
+        inputBuffer += "\r\n";
+    }
     
-    buf[bytesRead] = '\0';
-    std::cout << this->_clients[client_pfd.fd].getIp() << ": " << buf;
-    std::string msg(this->_clients[client_pfd.fd].getIp());
-    msg += ": " + std::string(buf);
-    for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        // if (it->first == client_pfd.fd) {
-        //     _truncateAndSend(client_pfd.fd, fullMessage);
-        // }
+    std::string &outputBuffer = this->_clients[client_pfd.fd].getOutputBuffer();
+    if (inputBuffer.find("\r\n") != std::string::npos) {
+        size_t  pos = inputBuffer.find("\r\n");
+        std::string msg = inputBuffer.substr(0, pos + 2);
+        outputBuffer += _generateResponse(msg);
+        inputBuffer.erase(0, pos + 2);
     }
 }
 
-void    Server::_truncateAndSend(int fd, std::string str) {
-    if (str.size() > 512)
-        str.resize(510);
-    str = str.substr() += "\r\n";
-    send(fd, str.c_str(), str.size(), 0);
-}
+// void    Server::_truncateAndSend(int fd, std::string str) {
+//     if (str.size() > 512)
+//         str.resize(510);
+//     str = str.substr() += "\r\n";
+//     send(fd, str.c_str(), str.size(), 0);
+// }
 
 void    Server::run() {
     std::vector<struct pollfd>  poll_fds;

@@ -33,6 +33,14 @@ int Client::getSocket() const {
     return (this->_socket_fd);
 }
 
+std::string&    Client::getInputBuffer() {
+    return (this->_inputBuffer);
+}
+
+std::string&    Client::getOutputBuffer() {
+    return (this->_outputBuffer);
+}
+
 const std::string  Client::getIp() const {
     return (inet_ntoa(this->_addr.sin_addr));
 }

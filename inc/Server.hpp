@@ -13,11 +13,13 @@
 #include "Client.hpp"
 #include <csignal>
 #include <netdb.h>
+#include <sstream>
+
 
 #include "Numerics.hpp"
 
 #define MAX_CLIENTS 100
-#define MAX_MSG_LEN 5
+#define MAX_MSG_LEN 512
 
 class Client;
 
@@ -39,6 +41,7 @@ private:
     int     _createSocket();
     void    _addClient(std::vector<pollfd>& poll_fds);
     void    _removeClient(int fd, std::vector<pollfd>& poll_fds);
+    std::string _generateResponse(std::string& msg);
     void    _handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd);
 
     void    _truncateAndSend(int fd, std::string str);
