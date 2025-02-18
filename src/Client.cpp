@@ -8,10 +8,10 @@ void    Client::authenticate() {
     this->_authenticated = true;
 }
 
-void    Client::addChannel(const std::string& channel) {
+void    Client::addChannel(const string& channel) {
     (void)channel;
 }
-void    Client::removeChannel(const std::string& channel) {
+void    Client::removeChannel(const string& channel) {
     (void)channel;
 }
 
@@ -33,29 +33,29 @@ int Client::getSocket() const {
     return (this->_socket_fd);
 }
 
-std::string&    Client::getInputBuffer() {
+string&    Client::getInputBuffer() {
     return (this->_inputBuffer);
 }
 
-std::string&    Client::getOutputBuffer() {
+string&    Client::getOutputBuffer() {
     return (this->_outputBuffer);
 }
 
-const std::string  Client::getIp() const {
+const string  Client::getIp() const {
     return (inet_ntoa(this->_addr.sin_addr));
 }
 
-const std::string&  Client::getNickname() const {
+const string&  Client::getNickname() const {
     return (this->_nickname);
 }
-const std::string&  Client::getUsername() const {
+const string&  Client::getUsername() const {
     return (this->_username);
 }
-const std::vector<std::string>& Client::getChannels() const {
+const std::vector<string>& Client::getChannels() const {
     return (this->_channels);
 }
 
-void    Client::setNickname(const std::string& nickname) {
+void    Client::setNickname(const string& nickname) {
     this->_nickname = nickname;
 }
 

@@ -5,40 +5,43 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+using std::string;
+using std::vector;
+
 class Client {
 private:
-    int                 _socket_fd;
-    struct sockaddr_in  _addr;
-    std::string         _inputBuffer;
-    std::string         _outputBuffer;
+    int         _socket_fd;
+    sockaddr_in _addr;
+    string      _inputBuffer;
+    string      _outputBuffer;
 
-    bool                _op;
-    bool                _authenticated;
-    std::string         _nickname;
-    std::string         _username;
-    std::string         _password;
+    bool    _op;
+    bool    _authenticated;
+    string  _nickname;
+    string  _username;
+    string  _password;
 
-    std::vector<std::string> _channels;
+    vector<string> _channels;
 
 
 public:
     void    authenticate();
-    void    addChannel(const std::string& channel);
-    void    removeChannel(const std::string& channel);
+    void    addChannel(const string& channel);
+    void    removeChannel(const string& channel);
 
     // Predicates, getters, setters
     bool    isOperator() const ;
     bool    isAuthenticated() const;
     bool    isConnected() const;
     int     getSocket() const;
-    std::string&    getInputBuffer();
-    std::string&    getOutputBuffer();
-    const std::string   getIp() const;
-    const std::string&  getNickname() const;
-    const std::string&  getUsername() const;
-    const std::vector<std::string>& getChannels() const;
+    string&    getInputBuffer();
+    string&    getOutputBuffer();
+    const string   getIp() const;
+    const string&  getNickname() const;
+    const string&  getUsername() const;
+    const vector<string>& getChannels() const;
 
-    void    setNickname(const std::string& nickname);
+    void    setNickname(const string& nickname);
 
     Client();
     Client(const Client& rhs);

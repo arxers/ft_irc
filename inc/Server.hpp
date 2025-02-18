@@ -1,32 +1,33 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <map>
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
+#include <csignal>
+#include <cctype>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <cstring>
-#include <unistd.h>
-#include <map>
 #include <poll.h>
-#include <vector>
-#include "Client.hpp"
-#include <csignal>
 #include <netdb.h>
-#include <sstream>
-#include <cctype>
 
-
+#include "Client.hpp"
+#include "Message.hpp"
 #include "Numerics.hpp"
 
 #define MAX_CLIENTS 100
 #define MAX_MSG_LEN 512
 
-class Client;
+using std::map;
+using std::string;
+using std::vector;
+
 
 extern volatile sig_atomic_t running;
 
-enum e_commands{
+enum e_command{
     PASS,
     NICK,
     USER,
@@ -38,30 +39,33 @@ enum e_commands{
     MODE,
 };
 
+typedef map<string, e_command> command_map;
+typedef map<int, Client> client_map;
+
+class Client;
 class Server {
 private:
-    int         _listeningSocket;
-    std::string _port;
-    std::string _password;
+    int     _listeningSocket;
+    string  _port;
+    string  _password;
 
-    std::map<int, Client> _clients;
     int         _clientCount;
+    client_map  _clients;
+    command_map _commands;
 
     Server();
     Server(const Server&);
     Server& operator=(const Server&);
 
     int     _createSocket();
-    void    _addClient(std::vector<pollfd>& poll_fds);
-    void    _removeClient(int fd, std::vector<pollfd>& poll_fds);
-    std::string _generateResponse(std::string& msg);
-    void    _handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd);
-
-    void    _truncateAndSend(int fd, std::string str);
+    void    _addClient(vector<pollfd>& poll_fds);
+    void    _removeClient(int fd, vector<pollfd>& poll_fds);
+    void    _handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd);
+    string  _generateResponse(string& msg);
     
 public:
     void    run();
 
-    Server(std::string port, std::string password);
+    Server(string port, string password);
     ~Server();
 };

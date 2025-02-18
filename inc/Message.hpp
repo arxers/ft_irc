@@ -4,20 +4,23 @@
 #include <vector>
 #include <sstream>
 
+using std::string;
+using std::vector;
+
 class Message {
 private:
-    std::string                 _prefix;
-    std::string                 _command;
-    std::vector<std::string>    _params;
+    string                 _prefix;
+    string                 _command;
+    vector<string>    _params;
 
     Message();
 public:
-    std::string                 getPrefix() const;
-    std::string                 getCommand() const;
-    std::vector<std::string>    getParams() const;
-    bool                        isValid() const;
+    string          getPrefix() const;
+    string          getCommand() const;
+    vector<string>  getParams() const;
+    bool            isValid() const;
 
-    Message(const std::string&);
+    Message(const string&);
     Message(const Message&);
     Message& operator=(const Message&);
     ~Message();

@@ -56,16 +56,16 @@ void    Server::_addClient(std::vector<struct pollfd>& poll_fds) {
         poll_fds.push_back(client_pfd);
         std::cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
 
-        std::string msg(inet_ntoa(clientAddr.sin_addr));
+        string msg(inet_ntoa(clientAddr.sin_addr));
             msg += " connected\n";
-        for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
             if (it->first != client_fd) {
                 send(it->first, msg.c_str(), msg.size(), 0);
             }
         }
+        return ;
     }
-    else
-        close(client_fd);
+    close(client_fd);
 }
 
 void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
@@ -81,71 +81,6 @@ void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
     }
 }
 
-static void toUpperStr(std::string& s) {
-    for (std::string::iterator it = s.begin(); it != s.end(); ++it)
-        *it = (std::toupper(*it));
-}
-
-std::string Server::_generateResponse(std::string& msg) {
-    std::istringstream  iss(msg);
-    std::string         token;
-
-    std::string commands[] = {
-        "PASS",
-        "NICK",
-        "USER",
-        "JOIN",
-        "PRIVMSG",
-        "KICK",
-        "INVITE",
-        "TOPIC",
-        "MODE",
-    };
-
-    iss >> token;
-    toUpperStr(token);
-    std::cout << token << std::endl;
-    int i = 0;
-
-    while (i < 9) {
-        if (token == commands[i])
-            break ;
-        i++;
-    }
-    switch (i) {
-        case PASS:
-            std::cout << "Token found: PASS\n";
-            break ;
-        case NICK:
-            std::cout << "Token found: NICK\n";
-            break ;
-        case USER:
-            std::cout << "Token found: USER\n";
-            break ;
-        case JOIN:
-            std::cout << "Token found: JOIN\n";
-            break ;
-        case PRIVMSG:
-            std::cout << "Token found: PRIVMSG\n";
-            break ;
-        case KICK:
-            std::cout << "Token found: KICK\n";
-            break ;
-        case INVITE:
-            std::cout << "Token found: INVITE\n";
-            break ;
-        case TOPIC:
-            std::cout << "Token found: TOPIC\n";
-            break ;
-        case MODE:
-            std::cout << "Token found: TOPIC\n";
-            break ;
-        default:
-            std::cout << "Token not found\n";
-    }
-    return ("heh\n");
-}
-
 void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd) {
     char        buf[MAX_MSG_LEN + 1];
     int         receivedBytes;
@@ -156,28 +91,59 @@ void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& clie
         return ;
     }
 
-    std::string &inputBuffer = this->_clients[client_pfd.fd].getInputBuffer();
+    string &inputBuffer = this->_clients[client_pfd.fd].getInputBuffer();
     inputBuffer.append(buf, receivedBytes);
     if (inputBuffer.length() > MAX_MSG_LEN) {
         inputBuffer = inputBuffer.substr(0, MAX_MSG_LEN - 2);
         inputBuffer += "\r\n";
     }
     
-    std::string &outputBuffer = this->_clients[client_pfd.fd].getOutputBuffer();
-    if (inputBuffer.find("\r\n") != std::string::npos) {
+    string &outputBuffer = this->_clients[client_pfd.fd].getOutputBuffer();
+    if (inputBuffer.find("\r\n") != string::npos) {
         size_t  pos = inputBuffer.find("\r\n");
-        std::string msg = inputBuffer.substr(0, pos + 2);
-        outputBuffer += _generateResponse(msg);
+        string input = inputBuffer.substr(0, pos + 2);
+        outputBuffer += _generateResponse(input);
         inputBuffer.erase(0, pos + 2);
     }
 }
 
-// void    Server::_truncateAndSend(int fd, std::string str) {
-//     if (str.size() > 512)
-//         str.resize(510);
-//     str = str.substr() += "\r\n";
-//     send(fd, str.c_str(), str.size(), 0);
-// }
+static string  strToUpper(string s) {
+    for (string::iterator it = s.begin(); it != s.end(); ++it)
+        *it = (std::toupper(*it));
+    return (s);
+}
+
+string Server::_generateResponse(string& input) {
+    Message message(input);
+
+    string commandUpper = strToUpper(message.getCommand());
+    command_map::iterator   it = this->_commands.find(commandUpper);
+
+    e_command command = it->second;
+    switch (command) {
+        case PASS:
+            std::cout << "Token found: PASS\n";     break ;
+        case NICK:
+            std::cout << "Token found: NICK\n";     break ;
+        case USER:
+            std::cout << "Token found: USER\n";     break ;
+        case JOIN:
+            std::cout << "Token found: JOIN\n";     break ;
+        case PRIVMSG:
+            std::cout << "Token found: PRIVMSG\n";  break ;
+        case KICK:
+            std::cout << "Token found: KICK\n";     break ;
+        case INVITE:
+            std::cout << "Token found: INVITE\n";   break ;
+        case TOPIC:
+            std::cout << "Token found: TOPIC\n";    break ;
+        case MODE:
+            std::cout << "Token found: MODE\n";     break ;
+        default:
+            std::cout << "Token not found\n";
+    }
+    return ("heh\n");
+}
 
 void    Server::run() {
     std::vector<struct pollfd>  poll_fds;
@@ -206,17 +172,30 @@ static bool isValidPort(int n) {
     return (n >= 1024 && n <= 49151);
 }
 
-Server::Server(std::string port, std::string password) :
+static void initCommandMap(command_map& map) {
+    map["PASS"]     = PASS;
+    map["NICK"]     = NICK;
+    map["USER"]     = USER;
+    map["JOIN"]     = JOIN;
+    map["PRIVMSG"]  = PRIVMSG;
+    map["KICK"]     = KICK;
+    map["INVITE"]   = INVITE;
+    map["TOPIC"]    = TOPIC;
+    map["MODE"]     = MODE;
+}
+
+Server::Server(string port, string password) :
 _port(port), _password(password), _clientCount(0) {
     if (!isValidPort(std::atoi(this->_port.c_str())))
         throw std::invalid_argument("Port must be within 1024-49151");
     this->_listeningSocket = _createSocket();
+    initCommandMap(this->_commands);
 }
 
 Server::~Server() {
     close(this->_listeningSocket);
 
-    for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+    for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         close(it->first);
     }
 }
