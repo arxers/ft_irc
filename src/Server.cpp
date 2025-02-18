@@ -99,7 +99,7 @@ void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& clie
     }
     
     string &outputBuffer = this->_clients[client_pfd.fd].getOutputBuffer();
-    if (inputBuffer.find("\r\n") != string::npos) {
+    while (inputBuffer.find("\r\n") != string::npos) {
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos + 2);
         outputBuffer += _generateResponse(input);
