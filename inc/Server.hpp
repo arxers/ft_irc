@@ -14,6 +14,7 @@
 #include <csignal>
 #include <netdb.h>
 #include <sstream>
+#include <cctype>
 
 
 #include "Numerics.hpp"
@@ -24,6 +25,18 @@
 class Client;
 
 extern volatile sig_atomic_t running;
+
+enum e_commands{
+    PASS,
+    NICK,
+    USER,
+    JOIN,
+    PRIVMSG,
+    KICK,
+    INVITE,
+    TOPIC,
+    MODE,
+};
 
 class Server {
 private:

@@ -81,14 +81,68 @@ void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
     }
 }
 
+static void toUpperStr(std::string& s) {
+    for (std::string::iterator it = s.begin(); it != s.end(); ++it)
+        *it = (std::toupper(*it));
+}
+
 std::string Server::_generateResponse(std::string& msg) {
     std::istringstream  iss(msg);
     std::string         token;
 
+    std::string commands[] = {
+        "PASS",
+        "NICK",
+        "USER",
+        "JOIN",
+        "PRIVMSG",
+        "KICK",
+        "INVITE",
+        "TOPIC",
+        "MODE",
+    };
+
     iss >> token;
-    // std::cout << token << std::endl;
-    if (token == "PING")
-        std::cout << "PONG\n";
+    toUpperStr(token);
+    std::cout << token << std::endl;
+    int i = 0;
+
+    while (i < 9) {
+        if (token == commands[i])
+            break ;
+        i++;
+    }
+    switch (i) {
+        case PASS:
+            std::cout << "Token found: PASS\n";
+            break ;
+        case NICK:
+            std::cout << "Token found: NICK\n";
+            break ;
+        case USER:
+            std::cout << "Token found: USER\n";
+            break ;
+        case JOIN:
+            std::cout << "Token found: JOIN\n";
+            break ;
+        case PRIVMSG:
+            std::cout << "Token found: PRIVMSG\n";
+            break ;
+        case KICK:
+            std::cout << "Token found: KICK\n";
+            break ;
+        case INVITE:
+            std::cout << "Token found: INVITE\n";
+            break ;
+        case TOPIC:
+            std::cout << "Token found: TOPIC\n";
+            break ;
+        case MODE:
+            std::cout << "Token found: TOPIC\n";
+            break ;
+        default:
+            std::cout << "Token not found\n";
+    }
     return ("heh\n");
 }
 
