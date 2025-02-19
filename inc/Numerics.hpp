@@ -4,7 +4,7 @@
 
 using std::string;
 
-#define END "\r\n"
+#define CRLF "\r\n"
 
 class Numerics {
 private:
@@ -29,4 +29,8 @@ public:
     static string   ERR_NOPRIVILEGES(const string& server, const string& nick); //481
     // static string   ERR_NOOPERHOST(); //491
     static string   ERR_NOPRIVS(const string& server, const string& nick, const string& cmd); //723
+
+    static string   formatMessage(const string& server, const string& num, const string& nick, const string& message) {
+        return (":" + server + " " + num + " " + nick + " :" + message + CRLF);
+    }
 };

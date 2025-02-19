@@ -114,14 +114,16 @@ static string  strToUpper(string s) {
 }
 
 string  Server::pass(int client_fd, const vector<string>& params) {
-    Client client = this->_clients[client_fd];
+    Client& client = this->_clients[client_fd];
+    if (client.isAuthenticated())
+        return (Numerics::formatMessage(this->_name, "462", client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 1)
         return (Numerics::ERR_NEEDMOREPARAMS(this->_name, client.getNickname(), "PASS"));
     if (params[0] == this->_password) {
         client.authenticate();
         return ("");
     }
-    return ("THATS THE WRONG NUMBAH\r\n");
+    return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Password inccorect"));
 }
 
 string Server::_generateResponse(int client_fd, string& input) {
