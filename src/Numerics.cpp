@@ -27,6 +27,9 @@ string  Numerics::ERR_NOMOTD(const string& server, const string& nick) {
 string  Numerics::RPL_YOUREOPER(const string& server, const string& nick) {
     return (":" + server + " 381 " + nick + ":You are now an IRC operator" + END); }
 
+string  Numerics::ERR_NEEDMOREPARAMS(const string& server, const string& nick, const string& command) {
+    return (":" + server + " 461 " + nick + " " + command + " :Not enough parameters" + END); }
+
 string  Numerics::ERR_NOPRIVILEGES(const string& server, const string& nick) {
     return (":" + server + " 481 " + nick + ":Permission denied - You are not an IRC operator" + END); }
 

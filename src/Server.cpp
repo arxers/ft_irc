@@ -102,7 +102,7 @@ void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& clie
     while (inputBuffer.find("\r\n") != string::npos) {
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos + 2);
-        outputBuffer += _generateResponse(input);
+        outputBuffer += _generateResponse(client_pfd.fd, input);
         inputBuffer.erase(0, pos + 2);
     }
 }
@@ -113,16 +113,30 @@ static string  strToUpper(string s) {
     return (s);
 }
 
-string Server::_generateResponse(string& input) {
+string  Server::pass(int client_fd, const vector<string>& params) {
+    Client client = this->_clients[client_fd];
+    if (params.size() < 1)
+        return (Numerics::ERR_NEEDMOREPARAMS(this->_name, client.getNickname(), "PASS"));
+    if (params[0] == this->_password) {
+        client.authenticate();
+        return ("");
+    }
+    return ("THATS THE WRONG NUMBAH\r\n");
+}
+
+string Server::_generateResponse(int client_fd, string& input) {
     Message message(input);
 
     string commandUpper = strToUpper(message.getCommand());
     command_map::iterator   it = this->_commands.find(commandUpper);
 
+    std::string reply;
     e_command command = it->second;
     switch (command) {
         case PASS:
-            std::cout << "Token found: PASS\n";     break ;
+            std::cout << "Token found: PASS\n";
+            reply = pass(client_fd, message.getParams());
+            break ;
         case NICK:
             std::cout << "Token found: NICK\n";     break ;
         case USER:
@@ -142,7 +156,8 @@ string Server::_generateResponse(string& input) {
         default:
             std::cout << "Token not found\n";
     }
-    return ("heh\n");
+    std::cout << reply;
+    return (reply);
 }
 
 void    Server::run() {
@@ -184,8 +199,8 @@ static void initCommandMap(command_map& map) {
     map["MODE"]     = MODE;
 }
 
-Server::Server(string port, string password) :
-_port(port), _password(password), _clientCount(0) {
+Server::Server(string name, string port, string password) :
+_name(name), _port(port), _password(password), _clientCount(0) {
     if (!isValidPort(std::atoi(this->_port.c_str())))
         throw std::invalid_argument("Port must be within 1024-49151");
     this->_listeningSocket = _createSocket();

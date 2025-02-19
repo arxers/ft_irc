@@ -19,7 +19,7 @@ int main(int ac, char** av) {
     signal(SIGINT, signal_handler);
     
     try {
-        Server server(port, password);
+        Server server("poopoo", port, password);
         server.run();
         
     }

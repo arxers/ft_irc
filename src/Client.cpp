@@ -66,7 +66,8 @@ Client::Client(int socket_fd, struct sockaddr_in addr) :
 _socket_fd(socket_fd),
 _addr(addr),
 _op(false),
-_authenticated(false)
+_authenticated(false),
+_nickname("*")
 {}
 
 Client::Client(const Client& rhs) {

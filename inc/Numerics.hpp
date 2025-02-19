@@ -25,6 +25,7 @@ public:
 
     // Operator
     static string   RPL_YOUREOPER(const string& server, const string& nick); //381
+    static string   ERR_NEEDMOREPARAMS(const string& server, const string& nick, const string& command); //461
     static string   ERR_NOPRIVILEGES(const string& server, const string& nick); //481
     // static string   ERR_NOOPERHOST(); //491
     static string   ERR_NOPRIVS(const string& server, const string& nick, const string& cmd); //723

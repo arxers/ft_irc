@@ -46,6 +46,7 @@ class Client;
 class Server {
 private:
     int     _listeningSocket;
+    string  _name;
     string  _port;
     string  _password;
 
@@ -61,11 +62,14 @@ private:
     void    _addClient(vector<pollfd>& poll_fds);
     void    _removeClient(int fd, vector<pollfd>& poll_fds);
     void    _handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd);
-    string  _generateResponse(string& msg);
+    string  _generateResponse(int client_fd, string& input);
+
+    // Commands
+    string pass(int client_fd, const vector<string>& params);
     
 public:
     void    run();
 
-    Server(string port, string password);
+    Server(string name, string port, string password);
     ~Server();
 };
