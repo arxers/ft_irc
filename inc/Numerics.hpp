@@ -34,7 +34,7 @@ public:
         return (":" + server + " " + num + " " + nick + " :" + message + CRLF);
     }
 
-    static string   formatMessage(const string& server, const string& num, const string& nick, const string& command, const string& message) {
-        return (":" + server + " " + num + " " + nick + " " + command + " :" + message  + CRLF);
+    static string   formatMessage(const string& server, const string& num, const string& nick, const string& param, const string& message) {
+        return (":" + server + " " + num + " " + nick + " " + param + " :" + message  + CRLF);
     }
 };

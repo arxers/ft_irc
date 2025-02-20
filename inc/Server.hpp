@@ -64,6 +64,8 @@ private:
     void    _handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd);
     string  _generateResponse(Client& client, string& input);
     void    _sendToClient(Client& client);
+    Client* _getClientByNickname(const string& nickname);
+    bool    _isValidNickname(const string& nickname);
 
     // Commands
     string pass(Client& client, const vector<string>& params);

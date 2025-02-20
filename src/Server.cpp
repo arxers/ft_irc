@@ -118,7 +118,7 @@ string  Server::pass(Client& client, const vector<string>& params) {
     if (client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "462", client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 1)
-        return (Numerics::ERR_NEEDMOREPARAMS(this->_name, client.getNickname(), "PASS"));
+        return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     if (params[0] == this->_password) {
         client.authenticate();
         return ("");
@@ -126,10 +126,48 @@ string  Server::pass(Client& client, const vector<string>& params) {
     return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Password incorrect"));
 }
 
+Client* Server::_getClientByNickname(const string& nickname) {
+    for (size_t i = 0; i < this->_clients.size(); ++i) {
+        if (this->_clients[i].getNickname() == nickname)
+            return (&this->_clients[i]);
+    }
+    return (NULL);
+}
+
+bool    Server::_isValidNickname(const string& nickname) {
+    if (nickname.length() > 9)
+        return (false);
+
+    std::string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    std::string digit = "1234567890";
+    std::string special = "[]\\_^{}`";
+
+    if (letters.find(nickname[0]) == string::npos &&
+        special.find(nickname[0]) == string::npos)
+        return (false);
+
+    for (size_t i = 1; i < nickname.length(); ++i) {
+        if (letters.find(nickname[i]) == string::npos &&
+            special.find(nickname[i]) == string::npos &&
+            digit.find(nickname[i]) == string::npos &&
+            nickname[i] != '-')
+            return (false);
+    }
+
+    return (true);
+}
+
 string  Server::nick(Client& client, const vector<string>& params) {
-    (void)params;
+    client.setNickname("*");
     if (!client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
+    if (params.size() < 1)
+        return (Numerics::formatMessage(this->_name, "431", client.getNickname(), "No nickname given"));
+    if (!_isValidNickname(params[0]))
+        return (Numerics::formatMessage(this->_name, "432", client.getNickname(), params[0], "Erroneous nickname"));
+    if (_getClientByNickname(params[0]))
+        return (Numerics::formatMessage(this->_name, "433", client.getNickname(), params[0], "Nickname is already in use"));
+    client.setNickname(params[0]);
     return ("");
 }
 
@@ -137,6 +175,8 @@ string  Server::user(Client& client, const vector<string>& params) {
     (void)params;
     if (!client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
+    if (params.size() < 1)
+        return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     return ("");
 }
 
