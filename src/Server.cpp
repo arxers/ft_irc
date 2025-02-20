@@ -161,11 +161,14 @@ string Server::_generateResponse(Client& client, string& input) {
             reply = pass(client, message.getParams());
             break ;
         case NICK:
-            std::cout << "Token found: NICK\n";     break ;
+            reply = nick(client, message.getParams());
+            break ;
         case USER:
-            std::cout << "Token found: USER\n";     break ;
+            reply = user(client, message.getParams());
+            break ;
         case JOIN:
-            std::cout << "Token found: JOIN\n";     break ;
+            reply = join(client, message.getParams());
+            break ;
         case PRIVMSG:
             std::cout << "Token found: PRIVMSG\n";  break ;
         case KICK:
@@ -177,10 +180,21 @@ string Server::_generateResponse(Client& client, string& input) {
         case MODE:
             std::cout << "Token found: MODE\n";     break ;
         default:
-            std::cout << "Token not found\n";
+            reply = Numerics::formatMessage(this->_name, "421", client.getNickname(), message.getCommand(), "Unknown command!");
     }
-    std::cout << reply;
     return (reply);
+}
+
+void    Server::_sendToClient(Client& client) {
+    int fd = client.getSocket();
+    string& buf = client.getOutputBuffer();
+    size_t  size = buf.size();
+
+    if (!size)
+        return ;
+    std::cout << buf;
+    send(fd, buf.c_str(), size, 0);
+    buf.clear();
 }
 
 void    Server::run() {
@@ -201,6 +215,12 @@ void    Server::run() {
                     _addClient(poll_fds);
                 else
                     _handleClient(poll_fds, poll_fds[i]);
+            }
+        }
+        for (size_t i = 0; i < poll_fds.size(); ++i) {
+            if (this->_clients.find(poll_fds[i].fd) != this->_clients.end()) {
+                Client& client = this->_clients[poll_fds[i].fd];
+                _sendToClient(client);
             }
         }
     }

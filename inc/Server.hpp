@@ -63,6 +63,7 @@ private:
     void    _removeClient(int fd, vector<pollfd>& poll_fds);
     void    _handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd);
     string  _generateResponse(Client& client, string& input);
+    void    _sendToClient(Client& client);
 
     // Commands
     string pass(Client& client, const vector<string>& params);
