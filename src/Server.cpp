@@ -102,7 +102,8 @@ void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& clie
     while (inputBuffer.find("\r\n") != string::npos) {
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos + 2);
-        outputBuffer += _generateResponse(client_pfd.fd, input);
+        outputBuffer += _generateResponse(this->_clients[client_pfd.fd], input);
+        std::cout << input;
         inputBuffer.erase(0, pos + 2);
     }
 }
@@ -113,8 +114,7 @@ static string  strToUpper(string s) {
     return (s);
 }
 
-string  Server::pass(int client_fd, const vector<string>& params) {
-    Client& client = this->_clients[client_fd];
+string  Server::pass(Client& client, const vector<string>& params) {
     if (client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "462", client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 1)
@@ -123,10 +123,31 @@ string  Server::pass(int client_fd, const vector<string>& params) {
         client.authenticate();
         return ("");
     }
-    return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Password inccorect"));
+    return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Password incorrect"));
 }
 
-string Server::_generateResponse(int client_fd, string& input) {
+string  Server::nick(Client& client, const vector<string>& params) {
+    (void)params;
+    if (!client.isAuthenticated())
+        return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
+    return ("");
+}
+
+string  Server::user(Client& client, const vector<string>& params) {
+    (void)params;
+    if (!client.isAuthenticated())
+        return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
+    return ("");
+}
+
+string  Server::join(Client& client, const vector<string>& params) {
+    (void)params;
+    if (!client.isAuthenticated())
+        return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
+    return ("");
+}
+
+string Server::_generateResponse(Client& client, string& input) {
     Message message(input);
 
     string commandUpper = strToUpper(message.getCommand());
@@ -137,7 +158,7 @@ string Server::_generateResponse(int client_fd, string& input) {
     switch (command) {
         case PASS:
             std::cout << "Token found: PASS\n";
-            reply = pass(client_fd, message.getParams());
+            reply = pass(client, message.getParams());
             break ;
         case NICK:
             std::cout << "Token found: NICK\n";     break ;

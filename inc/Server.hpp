@@ -62,10 +62,13 @@ private:
     void    _addClient(vector<pollfd>& poll_fds);
     void    _removeClient(int fd, vector<pollfd>& poll_fds);
     void    _handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd);
-    string  _generateResponse(int client_fd, string& input);
+    string  _generateResponse(Client& client, string& input);
 
     // Commands
-    string pass(int client_fd, const vector<string>& params);
+    string pass(Client& client, const vector<string>& params);
+    string nick(Client& client, const vector<string>& params);
+    string user(Client& client, const vector<string>& params);
+    string join(Client& client, const vector<string>& params);
     
 public:
     void    run();
