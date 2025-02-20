@@ -158,7 +158,6 @@ bool    Server::_isValidNickname(const string& nickname) {
 }
 
 string  Server::nick(Client& client, const vector<string>& params) {
-    client.setNickname("*");
     if (!client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
     if (params.size() < 1)
@@ -168,15 +167,20 @@ string  Server::nick(Client& client, const vector<string>& params) {
     if (_getClientByNickname(params[0]))
         return (Numerics::formatMessage(this->_name, "433", client.getNickname(), params[0], "Nickname is already in use"));
     client.setNickname(params[0]);
+    if (client.getUsername() != "")
+        client.setState(REGISTERED);
     return ("");
 }
 
 string  Server::user(Client& client, const vector<string>& params) {
-    (void)params;
     if (!client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
-    if (params.size() < 1)
+    if (params.size() < 4)
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
+    client.setUsername(params[0]);
+    client.setRealname(params[3]);
+    if (client.getNickname() != "*")
+        client.setState(REGISTERED);
     return ("");
 }
 
@@ -184,6 +188,8 @@ string  Server::join(Client& client, const vector<string>& params) {
     (void)params;
     if (!client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
+    if (client.getState() == REGISTERED)
+        std::cout << "wahoo\n";
     return ("");
 }
 

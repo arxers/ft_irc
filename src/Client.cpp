@@ -5,7 +5,8 @@
 
 // public:
 void    Client::authenticate() {
-    this->_authenticated = true;
+    if (this->_state < AUTHENTICATED)
+        this->_state = AUTHENTICATED;
 }
 
 void    Client::addChannel(const string& channel) {
@@ -22,7 +23,7 @@ bool    Client::isOperator() const {
 }
 
 bool    Client::isAuthenticated() const {
-    return (this->_authenticated == true);
+    return (this->_state >= AUTHENTICATED);
 }
 
 bool    Client::isConnected() const {
@@ -45,6 +46,10 @@ const string  Client::getIp() const {
     return (inet_ntoa(this->_addr.sin_addr));
 }
 
+e_client_state  Client::getState() const {
+    return (this->_state);
+}
+
 const string&  Client::getNickname() const {
     return (this->_nickname);
 }
@@ -55,18 +60,29 @@ const std::vector<string>& Client::getChannels() const {
     return (this->_channels);
 }
 
+void    Client::setState(e_client_state state) {
+    this->_state = state;
+}
+
 void    Client::setNickname(const string& nickname) {
     this->_nickname = nickname;
 }
 
-Client::Client() : _socket_fd(0), _authenticated(false)
-{}
+void    Client::setUsername(const string& username) {
+    this->_username = username;
+}
+
+void    Client::setRealname(const string& realname) {
+    this->_realname = realname;
+}
+
+Client::Client() {}
 
 Client::Client(int socket_fd, struct sockaddr_in addr) :
 _socket_fd(socket_fd),
 _addr(addr),
+_state(CONNECTED),
 _op(false),
-_authenticated(false),
 _nickname("*")
 {}
 
@@ -81,8 +97,8 @@ Client& Client::operator=(const Client& rhs) {
     if (this != &rhs) {
         this->_socket_fd = rhs._socket_fd;
         this->_addr = rhs._addr;
+        this->_state = rhs._state;
         this->_op = rhs._op;
-        this->_authenticated = rhs._authenticated;
         this->_nickname = rhs._nickname;
         this->_username = rhs._username;
         this->_password = rhs._password;
