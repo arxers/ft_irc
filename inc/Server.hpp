@@ -28,6 +28,7 @@ using std::vector;
 extern volatile sig_atomic_t running;
 
 enum e_command{
+    CAP,
     PASS,
     NICK,
     USER,
@@ -62,16 +63,17 @@ private:
     void    _addClient(vector<pollfd>& poll_fds);
     void    _removeClient(int fd, vector<pollfd>& poll_fds);
     void    _handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd);
-    string  _generateResponse(Client& client, string& input);
+    string  _generateResponse(Client& client, Message message);
     void    _sendToClient(Client& client);
     Client* _getClientByNickname(const string& nickname);
     bool    _isValidNickname(const string& nickname);
 
     // Commands
-    string pass(Client& client, const vector<string>& params);
-    string nick(Client& client, const vector<string>& params);
-    string user(Client& client, const vector<string>& params);
-    string join(Client& client, const vector<string>& params);
+    string  cap(const vector<string>& params);
+    string  pass(Client& client, const vector<string>& params);
+    string  nick(Client& client, const vector<string>& params);
+    string  user(Client& client, const vector<string>& params);
+    string  join(Client& client, const vector<string>& params);
     
 public:
     void    run();

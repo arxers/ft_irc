@@ -114,6 +114,12 @@ static string  strToUpper(string s) {
     return (s);
 }
 
+string Server::cap(const vector<string>& params) {
+    if (params.empty() || params[0] != "LS")
+        return ("");
+    return (Numerics::formatMessage(this->_name, "CAP * LS :"));
+}
+
 string  Server::pass(Client& client, const vector<string>& params) {
     if (client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "462", client.getNickname(), "Unauthorized command (already registered)"));
@@ -158,8 +164,6 @@ bool    Server::_isValidNickname(const string& nickname) {
 }
 
 string  Server::nick(Client& client, const vector<string>& params) {
-    if (!client.isAuthenticated())
-        return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, "431", client.getNickname(), "No nickname given"));
     if (!_isValidNickname(params[0]))
@@ -173,8 +177,6 @@ string  Server::nick(Client& client, const vector<string>& params) {
 }
 
 string  Server::user(Client& client, const vector<string>& params) {
-    if (!client.isAuthenticated())
-        return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
     if (params.size() < 4)
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     client.setUsername(params[0]);
@@ -186,49 +188,44 @@ string  Server::user(Client& client, const vector<string>& params) {
 
 string  Server::join(Client& client, const vector<string>& params) {
     (void)params;
-    if (!client.isAuthenticated())
-        return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Your connection is restricted!"));
     if (client.getState() == REGISTERED)
         std::cout << "wahoo\n";
     return ("");
 }
 
-string Server::_generateResponse(Client& client, string& input) {
-    Message message(input);
-
+string Server::_generateResponse(Client& client, Message message) {
     string commandUpper = strToUpper(message.getCommand());
     command_map::iterator   it = this->_commands.find(commandUpper);
 
     std::string reply;
     e_command command = it->second;
+    if (command != PASS && !client.isAuthenticated())
+        return (Numerics::formatMessage(this->_name, "451", client.getNickname(), "You have not registered"));
+    const vector<string>&   params = message.getParams();
     switch (command) {
+        case CAP:
+            return (cap(params));
         case PASS:
-            std::cout << "Token found: PASS\n";
-            reply = pass(client, message.getParams());
-            break ;
+            return (pass(client, params));
         case NICK:
-            reply = nick(client, message.getParams());
-            break ;
+            return (nick(client, params));
         case USER:
-            reply = user(client, message.getParams());
-            break ;
+            return (user(client, params));
         case JOIN:
-            reply = join(client, message.getParams());
-            break ;
+            return (join(client, params));
         case PRIVMSG:
-            std::cout << "Token found: PRIVMSG\n";  break ;
+            return ("PRIVMSG");
         case KICK:
-            std::cout << "Token found: KICK\n";     break ;
+            return ("KICK");
         case INVITE:
-            std::cout << "Token found: INVITE\n";   break ;
+            return ("INVITE");
         case TOPIC:
-            std::cout << "Token found: TOPIC\n";    break ;
+            return ("TOPIC");
         case MODE:
-            std::cout << "Token found: MODE\n";     break ;
+            return ("MODE");
         default:
-            reply = Numerics::formatMessage(this->_name, "421", client.getNickname(), message.getCommand(), "Unknown command!");
+            return (Numerics::formatMessage(this->_name, "421", client.getNickname(), message.getCommand(), "Unknown command!"));
     }
-    return (reply);
 }
 
 void    Server::_sendToClient(Client& client) {
@@ -238,7 +235,7 @@ void    Server::_sendToClient(Client& client) {
 
     if (!size)
         return ;
-    std::cout << buf;
+    // std::cout << buf;
     send(fd, buf.c_str(), size, 0);
     buf.clear();
 }
@@ -277,6 +274,7 @@ static bool isValidPort(int n) {
 }
 
 static void initCommandMap(command_map& map) {
+    map["CAP"]      = CAP;
     map["PASS"]     = PASS;
     map["NICK"]     = NICK;
     map["USER"]     = USER;

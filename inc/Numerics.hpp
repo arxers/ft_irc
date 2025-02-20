@@ -30,6 +30,10 @@ public:
     // static string   ERR_NOOPERHOST(); //491
     static string   ERR_NOPRIVS(const string& server, const string& nick, const string& cmd); //723
 
+    static string   formatMessage(const string& server, const string& message) {
+        return (":" + server + " " + message + CRLF);
+    }
+
     static string   formatMessage(const string& server, const string& num, const string& nick, const string& message) {
         return (":" + server + " " + num + " " + nick + " :" + message + CRLF);
     }
