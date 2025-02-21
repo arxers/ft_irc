@@ -9,9 +9,9 @@ using std::vector;
 
 class Message {
 private:
-    string                 _prefix;
-    string                 _command;
-    vector<string>    _params;
+    string          _prefix;
+    string          _command;
+    vector<string>  _params;
 
     Message();
 public:
