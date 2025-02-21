@@ -55,14 +55,6 @@ void    Server::_addClient(std::vector<struct pollfd>& poll_fds) {
         struct pollfd   client_pfd = {client_fd, POLLIN, 0};
         poll_fds.push_back(client_pfd);
         std::cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
-
-        string msg(inet_ntoa(clientAddr.sin_addr));
-            msg += " connected\n";
-        for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-            if (it->first != client_fd) {
-                send(it->first, msg.c_str(), msg.size(), 0);
-            }
-        }
         return ;
     }
     close(client_fd);
@@ -199,12 +191,20 @@ string Server::_generateResponse(Client& client, Message message) {
 
     std::string reply;
     e_command command = it->second;
-    if (command != PASS && !client.isAuthenticated())
-        return (Numerics::formatMessage(this->_name, "451", client.getNickname(), "You have not registered"));
     const vector<string>&   params = message.getParams();
+    if (command == CAP)
+        return (cap(params));
+
+    if (client.getState() < AUTHENTICATED) {
+        if (command != PASS)
+            return (Numerics::formatMessage(this->_name, "451", client.getNickname(), "You have not registered"));
+    }
+    else if (client.getState() < REGISTERED) {
+        if (command != NICK && command != USER)
+            return (Numerics::formatMessage(this->_name, "451", client.getNickname(), "You have not registered"));
+    }
+    
     switch (command) {
-        case CAP:
-            return (cap(params));
         case PASS:
             return (pass(client, params));
         case NICK:
