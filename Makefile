@@ -14,6 +14,7 @@ RESET	= \033[0m
 all: $(NAME)
 
 $(NAME): $(OBJ)
+	@echo "Compiler flags:		$(GREEN)$(CXXFLAGS)$(RESET)"
 	@echo "\nCreated binary file:	$(GREEN)(+) $(NAME)$(RESET)"
 	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
 
@@ -31,7 +32,6 @@ fclean: clean
 
 g: CXXFLAGS += -g
 g: re
-	@echo "			$(GREEN)Compiled with -g flag$(RESET)"
 
 re: fclean all
 
