@@ -12,7 +12,7 @@ enum    e_client_state {
     CONNECTED,
     AUTHENTICATED,
     REGISTERED,
-    DISCONNETED
+    DISCONNECTED
 };
 
 class Client {
