@@ -56,7 +56,7 @@ const string&  Client::getNickname() const {
 const string&  Client::getUsername() const {
     return (this->_username);
 }
-const std::vector<string>& Client::getChannels() const {
+const vector<string>& Client::getChannels() const {
     return (this->_channels);
 }
 

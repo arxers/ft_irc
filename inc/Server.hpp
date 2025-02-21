@@ -23,6 +23,8 @@
 using std::map;
 using std::string;
 using std::vector;
+using std::cout;
+using std::cerr;
 
 
 extern volatile sig_atomic_t running;

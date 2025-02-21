@@ -16,7 +16,7 @@ int Server::_createSocket() {
 
         int opt = 1;
         if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
-            std::cerr << "setsockopt() failed\n";
+            cerr << "setsockopt() failed\n";
             continue ;
         }
 
@@ -41,7 +41,7 @@ int Server::_createSocket() {
     return (socket_fd);
 }
 
-void    Server::_addClient(std::vector<struct pollfd>& poll_fds) {
+void    Server::_addClient(vector<struct pollfd>& poll_fds) {
     sockaddr_in clientAddr;
     socklen_t   clientLen = sizeof(clientAddr);
 
@@ -54,16 +54,16 @@ void    Server::_addClient(std::vector<struct pollfd>& poll_fds) {
         this->_clients[client_fd] = Client(client_fd, clientAddr);
         struct pollfd   client_pfd = {client_fd, POLLIN, 0};
         poll_fds.push_back(client_pfd);
-        std::cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
+        cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
         return ;
     }
     close(client_fd);
 }
 
-void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
-    std::cout << this->_clients[socket_fd].getIp() << " disconnected\n";
+void    Server::_removeClient(int socket_fd, vector<pollfd>& poll_fds) {
+    cout << this->_clients[socket_fd].getIp() << " disconnected\n";
     this->_clients.erase(socket_fd);
-    for (std::vector<pollfd>::iterator it = poll_fds.begin(); it != poll_fds.end(); ++it) {
+    for (vector<pollfd>::iterator it = poll_fds.begin(); it != poll_fds.end(); ++it) {
         if (it->fd == socket_fd) {
             poll_fds.erase(it);
             this->_clientCount--;
@@ -73,7 +73,7 @@ void    Server::_removeClient(int socket_fd, std::vector<pollfd>& poll_fds) {
     }
 }
 
-void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& client_pfd) {
+void    Server::_handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd) {
     char        buf[MAX_MSG_LEN + 1];
     int         receivedBytes;
 
@@ -95,7 +95,7 @@ void    Server::_handleClient(std::vector<pollfd>& poll_fds, struct pollfd& clie
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos + 2);
         outputBuffer += _generateResponse(this->_clients[client_pfd.fd], input);
-        std::cout << input;
+        cout << input;
         inputBuffer.erase(0, pos + 2);
     }
 }
@@ -136,9 +136,9 @@ bool    Server::_isValidNickname(const string& nickname) {
     if (nickname.length() > 9)
         return (false);
 
-    std::string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    std::string digit = "1234567890";
-    std::string special = "[]\\_^{}`";
+    string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    string digit = "1234567890";
+    string special = "[]\\_^{}`";
 
     if (letters.find(nickname[0]) == string::npos &&
         special.find(nickname[0]) == string::npos)
@@ -181,7 +181,7 @@ string  Server::user(Client& client, const vector<string>& params) {
 string  Server::join(Client& client, const vector<string>& params) {
     (void)params;
     if (client.getState() == REGISTERED)
-        std::cout << "wahoo\n";
+        cout << "wahoo\n";
     return ("");
 }
 
@@ -189,7 +189,7 @@ string Server::_generateResponse(Client& client, Message message) {
     string commandUpper = strToUpper(message.getCommand());
     command_map::iterator   it = this->_commands.find(commandUpper);
 
-    std::string reply;
+    string reply;
     e_command command = it->second;
     const vector<string>&   params = message.getParams();
     if (command == CAP)
@@ -203,7 +203,7 @@ string Server::_generateResponse(Client& client, Message message) {
         if (command != NICK && command != USER)
             return (Numerics::formatMessage(this->_name, "451", client.getNickname(), "You have not registered"));
     }
-    
+
     switch (command) {
         case PASS:
             return (pass(client, params));
@@ -235,13 +235,13 @@ void    Server::_sendToClient(Client& client) {
 
     if (!size)
         return ;
-    // std::cout << buf;
+    // cout << buf;
     send(fd, buf.c_str(), size, 0);
     buf.clear();
 }
 
 void    Server::run() {
-    std::vector<struct pollfd>  poll_fds;
+    vector<struct pollfd>  poll_fds;
 
     running = true;
     struct pollfd   server_pfd = {this->_listeningSocket, POLLIN, 0};
