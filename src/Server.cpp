@@ -179,9 +179,8 @@ string  Server::user(Client& client, const vector<string>& params) {
 }
 
 string  Server::join(Client& client, const vector<string>& params) {
-    (void)params;
-    if (client.getState() == REGISTERED)
-        cout << "wahoo\n";
+    if (params.size() < 1)
+        return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     return ("");
 }
 
