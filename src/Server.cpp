@@ -205,26 +205,16 @@ string Server::_generateResponse(Client& client, Message message) {
     }
 
     switch (command) {
-        case PASS:
-            return (pass(client, params));
-        case NICK:
-            return (nick(client, params));
-        case USER:
-            return (user(client, params));
-        case JOIN:
-            return (join(client, params));
-        case PRIVMSG:
-            return ("PRIVMSG");
-        case KICK:
-            return ("KICK");
-        case INVITE:
-            return ("INVITE");
-        case TOPIC:
-            return ("TOPIC");
-        case MODE:
-            return ("MODE");
-        default:
-            return (Numerics::formatMessage(this->_name, "421", client.getNickname(), message.getCommand(), "Unknown command!"));
+        case PASS:      return (pass(client, params));
+        case NICK:      return (nick(client, params));
+        case USER:      return (user(client, params));
+        case JOIN:      return (join(client, params));
+        case PRIVMSG:   return ("PRIVMSG");
+        case KICK:      return ("KICK");
+        case INVITE:    return ("INVITE");
+        case TOPIC:     return ("TOPIC");
+        case MODE:      return ("MODE");
+        default: return (Numerics::formatMessage(this->_name, "421", client.getNickname(), message.getCommand(), "Unknown command!"));
     }
 }
 
