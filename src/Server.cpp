@@ -181,12 +181,14 @@ string  Server::user(Client& client, const vector<string>& params) {
 string  Server::join(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
+    check channel name
+    return Numerics::formatMessage(this->_name, "403", client.getNickname(), channelName, "No such channel");
     return ("");
 }
 
 string Server::_generateResponse(Client& client, Message message) {
     string commandUpper = strToUpper(message.getCommand());
-    command_map::iterator   it = this->_commands.find(commandUpper);
+    commandmap_t::iterator   it = this->_commands.find(commandUpper);
 
     string reply;
     e_command command = it->second;
@@ -262,7 +264,7 @@ static bool isValidPort(int n) {
     return (n >= 1024 && n <= 49151);
 }
 
-static void initCommandMap(command_map& map) {
+static void initCommandMap(commandmap_t& map) {
     map["CAP"]      = CAP;
     map["PASS"]     = PASS;
     map["NICK"]     = NICK;

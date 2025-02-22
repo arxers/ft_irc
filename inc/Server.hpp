@@ -14,6 +14,7 @@
 #include <netdb.h>
 
 #include "Client.hpp"
+#include "Channel.hpp"
 #include "Message.hpp"
 #include "Numerics.hpp"
 
@@ -42,8 +43,9 @@ enum e_command{
     MODE,
 };
 
-typedef map<string, e_command> command_map;
-typedef map<int, Client> client_map;
+typedef map<int, Client>        clientmap_t;
+typedef map<string, Channel>    channelmap_t;
+typedef map<string, e_command>  commandmap_t;
 
 class Client;
 class Server {
@@ -53,9 +55,11 @@ private:
     string  _port;
     string  _password;
 
-    int         _clientCount;
-    client_map  _clients;
-    command_map _commands;
+    int             _clientCount;
+    clientmap_t     _clients;
+    channelmap_t    _channels;
+    commandmap_t    _commands;
+
 
     Server();
     Server(const Server&);
