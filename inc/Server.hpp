@@ -43,9 +43,7 @@ enum e_command{
     MODE,
 };
 
-typedef map<int, Client>        clientmap_t;
-typedef map<string, Channel>    channelmap_t;
-typedef map<string, e_command>  commandmap_t;
+typedef std::map<string, e_command>  commandmap_t;
 
 class Client;
 class Server {
@@ -59,7 +57,6 @@ private:
     clientmap_t     _clients;
     channelmap_t    _channels;
     commandmap_t    _commands;
-
 
     Server();
     Server(const Server&);

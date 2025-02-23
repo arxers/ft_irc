@@ -163,8 +163,10 @@ string  Server::nick(Client& client, const vector<string>& params) {
     if (_getClientByNickname(params[0]))
         return (Numerics::formatMessage(this->_name, "433", client.getNickname(), params[0], "Nickname is already in use"));
     client.setNickname(params[0]);
-    if (client.getUsername() != "")
+    if (client.getState() == AUTHENTICATED && client.getUsername() != "") {
         client.setState(REGISTERED);
+        return (Numerics::formatMessage(this->_name, "001", client.getNickname(), "Welcome to the Internet Relay Network, " + client.getNickname()));
+    }
     return ("");
 }
 
@@ -173,16 +175,31 @@ string  Server::user(Client& client, const vector<string>& params) {
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     client.setUsername(params[0]);
     client.setRealname(params[3]);
-    if (client.getNickname() != "*")
+    if (client.getState() == AUTHENTICATED && client.getNickname() != "*") {
         client.setState(REGISTERED);
+        return (Numerics::formatMessage(this->_name, "001", client.getNickname(), "Welcome to " + this->_name + ", " + client.getNickname()));
+    }
     return ("");
+}
+
+bool    isValidChannelName(const std::string& channel) {
+    if (channel.empty())
+        return (false);
+    if (channel[0] != '#')
+        return (false);
+    static const string invalidChars(" ,:");
+    for (size_t i = 1; i < channel.length(); ++i)
+        if (!std::isprint(channel[i]) || invalidChars.find(channel[i]) != string::npos)
+            return (false);
+    return (true);
 }
 
 string  Server::join(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
-    check channel name
-    return Numerics::formatMessage(this->_name, "403", client.getNickname(), channelName, "No such channel");
+    // check channel name
+    if (!isValidChannelName(params[0]))
+        return Numerics::formatMessage(this->_name, "403", client.getNickname(), params[0], "No such channel");
     return ("");
 }
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -62,3 +63,5 @@ public:
 
     Client& operator=(const Client& rhs);
 };
+
+typedef std::map<int, Client> clientmap_t;

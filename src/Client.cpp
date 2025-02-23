@@ -97,10 +97,13 @@ Client& Client::operator=(const Client& rhs) {
     if (this != &rhs) {
         this->_socket_fd = rhs._socket_fd;
         this->_addr = rhs._addr;
+        this->_inputBuffer = rhs._inputBuffer;
+        this->_outputBuffer = rhs._outputBuffer;
         this->_state = rhs._state;
         this->_op = rhs._op;
         this->_nickname = rhs._nickname;
         this->_username = rhs._username;
+        this->_realname = rhs._realname;
         this->_password = rhs._password;
         this->_channels = rhs._channels;
     }
