@@ -72,11 +72,11 @@ private:
     bool    _isValidNickname(const string& nickname);
 
     // Commands
-    string  cap(const vector<string>& params);
-    string  pass(Client& client, const vector<string>& params);
-    string  nick(Client& client, const vector<string>& params);
-    string  user(Client& client, const vector<string>& params);
-    string  join(Client& client, const vector<string>& params);
+    string  _cap(const vector<string>& params);
+    string  _pass(Client& client, const vector<string>& params);
+    string  _nick(Client& client, const vector<string>& params);
+    string  _user(Client& client, const vector<string>& params);
+    string  _join(Client& client, const vector<string>& params);
     
 public:
     void    run();

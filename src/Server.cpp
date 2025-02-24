@@ -106,13 +106,13 @@ static string  strToUpper(string s) {
     return (s);
 }
 
-string Server::cap(const vector<string>& params) {
+string Server::_cap(const vector<string>& params) {
     if (params.empty() || params[0] != "LS")
         return ("");
     return (Numerics::formatMessage(this->_name, "CAP * LS :"));
 }
 
-string  Server::pass(Client& client, const vector<string>& params) {
+string  Server::_pass(Client& client, const vector<string>& params) {
     if (client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, "462", client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 1)
@@ -155,7 +155,7 @@ bool    Server::_isValidNickname(const string& nickname) {
     return (true);
 }
 
-string  Server::nick(Client& client, const vector<string>& params) {
+string  Server::_nick(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, "431", client.getNickname(), "No nickname given"));
     if (!_isValidNickname(params[0]))
@@ -170,7 +170,7 @@ string  Server::nick(Client& client, const vector<string>& params) {
     return ("");
 }
 
-string  Server::user(Client& client, const vector<string>& params) {
+string  Server::_user(Client& client, const vector<string>& params) {
     if (params.size() < 4)
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     client.setUsername(params[0]);
@@ -194,7 +194,7 @@ bool    isValidChannelName(const std::string& channel) {
     return (true);
 }
 
-string  Server::join(Client& client, const vector<string>& params) {
+string  Server::_join(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     // check channel name
@@ -211,7 +211,7 @@ string Server::_generateResponse(Client& client, Message message) {
     e_command command = it->second;
     const vector<string>&   params = message.getParams();
     if (command == CAP)
-        return (cap(params));
+        return (_cap(params));
 
     if (client.getState() < AUTHENTICATED) {
         if (command != PASS)
@@ -223,10 +223,10 @@ string Server::_generateResponse(Client& client, Message message) {
     }
 
     switch (command) {
-        case PASS:      return (pass(client, params));
-        case NICK:      return (nick(client, params));
-        case USER:      return (user(client, params));
-        case JOIN:      return (join(client, params));
+        case PASS:      return (_pass(client, params));
+        case NICK:      return (_nick(client, params));
+        case USER:      return (_user(client, params));
+        case JOIN:      return (_join(client, params));
         case PRIVMSG:   return ("PRIVMSG");
         case KICK:      return ("KICK");
         case INVITE:    return ("INVITE");
