@@ -6,8 +6,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "Channel.hpp"
+
 using std::string;
 using std::vector;
+using std::map;
 
 enum    e_client_state {
     CONNECTED,
@@ -16,9 +19,11 @@ enum    e_client_state {
     DISCONNECTED
 };
 
+class Channel;
+
 class Client {
 private:
-    int         _socket_fd;
+    int         _socketFd;
     sockaddr_in _addr;
     string      _inputBuffer;
     string      _outputBuffer;
@@ -30,7 +35,7 @@ private:
     string  _realname;
     string  _password;
 
-    vector<string> _channels;
+    map<string, Channel>    _channels;
 
 
 public:
@@ -49,16 +54,19 @@ public:
     e_client_state  getState() const;
     const string&   getNickname() const;
     const string&   getUsername() const;
-    const vector<string>& getChannels() const;
+    const map<string, Channel>& getChannels() const;
 
     void    setState(e_client_state state);
     void    setNickname(const string& nickname);
     void    setUsername(const string& Username);
     void    setRealname(const string& Realname);
 
+    void    addChannel(const Channel channel);
+    void    removeChannel(const Channel channel);
+
     Client();
     Client(const Client& rhs);
-    Client(int socket_fd, struct sockaddr_in addr);
+    Client(int socketFd, struct sockaddr_in addr);
     ~Client();
 
     Client& operator=(const Client& rhs);

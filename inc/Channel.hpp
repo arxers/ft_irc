@@ -2,30 +2,39 @@
 
 #include "Client.hpp"
 
+using std::string;
+using std::map;
+
+class Client;
+
 class Channel {
 private:
-    const string    _name;
-    clientmap_t     _clients;
-    clientmap_t     _operators;     // o
-    bool            _inviteOnly;    // i
-    bool            _topicLock;     // t
-    int             _userLimit;     // l
-    string          _key;           // k
+    string              _name;
+    map<int, Client>    _clients;
+    map<int, Client>    _operators;     // o
+    bool                _inviteOnly;    // i
+    bool                _topicLock;     // t
+    int                 _userLimit;     // l
+    string              _key;           // k
 
-    Channel();
-    Channel(const Channel& rhs);
-    Channel& operator=(const Channel& rhs);
 public:
     void    addClient(Client client);
     void    removeClient(Client client);
     void    addOperator(Client client);
     void    removeOperator(Client client);
 
+    void    getSocket()(const string& message, Client client);
+
+
     void    setKey(const string& key);
 
-    const string& getKey();
+    const string&   getName() const;
+    const string&   getKey() const;
 
+    Channel();
     Channel(const string& channelName, Client client);
+    Channel(const Channel& rhs);
+    Channel& operator=(const Channel& rhs);
     ~Channel();
 };
 

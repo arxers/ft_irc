@@ -27,11 +27,11 @@ bool    Client::isAuthenticated() const {
 }
 
 bool    Client::isConnected() const {
-    return (this->_socket_fd != -1);
+    return (this->_socketFd != -1);
 }
 
 int Client::getSocket() const {
-    return (this->_socket_fd);
+    return (this->_socketFd);
 }
 
 string&    Client::getInputBuffer() {
@@ -56,7 +56,7 @@ const string&  Client::getNickname() const {
 const string&  Client::getUsername() const {
     return (this->_username);
 }
-const vector<string>& Client::getChannels() const {
+const map<string, Channel>& Client::getChannels() const {
     return (this->_channels);
 }
 
@@ -76,10 +76,18 @@ void    Client::setRealname(const string& realname) {
     this->_realname = realname;
 }
 
+void    Client::addChannel(const Channel channel) {
+    this->_channels[channel.getName()] = channel;
+}
+
+void    Client::removeChannel(const Channel channel) {
+    (void)channel;
+}
+
 Client::Client() {}
 
-Client::Client(int socket_fd, struct sockaddr_in addr) :
-_socket_fd(socket_fd),
+Client::Client(int socketFd, struct sockaddr_in addr) :
+_socketFd(socketFd),
 _addr(addr),
 _state(CONNECTED),
 _op(false),
@@ -95,7 +103,7 @@ Client::~Client() {}
 
 Client& Client::operator=(const Client& rhs) {
     if (this != &rhs) {
-        this->_socket_fd = rhs._socket_fd;
+        this->_socketFd = rhs._socketFd;
         this->_addr = rhs._addr;
         this->_inputBuffer = rhs._inputBuffer;
         this->_outputBuffer = rhs._outputBuffer;

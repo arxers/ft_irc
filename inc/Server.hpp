@@ -41,9 +41,10 @@ enum e_command{
     INVITE,
     TOPIC,
     MODE,
+    QUIT,
 };
 
-typedef std::map<string, e_command>  commandmap_t;
+typedef map<string, e_command>  commandmap_t;
 
 class Client;
 class Server {
@@ -53,19 +54,19 @@ private:
     string  _port;
     string  _password;
 
-    int             _clientCount;
-    clientmap_t     _clients;
-    channelmap_t    _channels;
-    commandmap_t    _commands;
+    int _clientCount;
+    map<int, Client>     _clients;
+    map<string, Channel>    _channels;
+    map<string, e_command>  _commands;
 
     Server();
     Server(const Server&);
     Server& operator=(const Server&);
 
     int     _createSocket();
-    void    _addClient(vector<pollfd>& poll_fds);
-    void    _removeClient(int fd, vector<pollfd>& poll_fds);
-    void    _handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pfd);
+    void    _addClient(vector<pollfd>& pollFds);
+    void    _removeClient(int fd, vector<pollfd>& pollFds);
+    void    _handleClient(vector<pollfd>& pollFds, struct pollfd& clientPollFd);
     string  _generateResponse(Client& client, Message message);
     void    _sendToClient(Client& client);
     Client* _getClientByNickname(const string& nickname);
@@ -78,6 +79,7 @@ private:
     string  _user(Client& client, const vector<string>& params);
     string  _join(Client& client, const vector<string>& params);
     string  _privMessage(Client& client, const vector<string>& params);
+    string  _quit(Client& client, const vector<string>& params);
     
 public:
     void    run();
