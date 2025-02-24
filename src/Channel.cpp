@@ -27,10 +27,11 @@ void    Channel::removeOperator(Client client) {
 
 void    Channel::broadcastMessage(const string& message, Client client) {
     for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        std::cout << it->second.getNickname() << '\n';
         if (it->first != client.getSocket()) {
-            string formattedMessage = ":poopoo " + client.getNickname() + " PRIVMSG " + it->second.getNickname() + " :" + message + "\r\n";
-            std::cout << "\n\n formatted: " << formattedMessage << "\n\n";
+            string formattedMessage = ":" + client.getNickname() + " PRIVMSG " + this->_name + " :" + message + "\r\n";
+            // for (size_t i = 0; i < formattedMessage.length(); i++)
+            //     std::cout << "[" << std::hex << (int)formattedMessage[i] << "]"; //raw hexdump for debugging
+            std::cout << std::endl;
             send(it->first, formattedMessage.c_str(), formattedMessage.size(), 0);
         }
     }
