@@ -78,7 +78,7 @@ private:
     string  _nick(Client& client, const vector<string>& params);
     string  _user(Client& client, const vector<string>& params);
     string  _join(Client& client, const vector<string>& params);
-    string  _privMessage(Client& client, const vector<string>& params);
+    string  _privMsg(Client& client, const vector<string>& params);
     string  _quit(Client& client, const vector<string>& params);
     
 public:

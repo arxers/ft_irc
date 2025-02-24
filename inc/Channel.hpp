@@ -23,7 +23,7 @@ public:
     void    addOperator(Client client);
     void    removeOperator(Client client);
 
-    void    getSocket()(const string& message, Client client);
+    void    broadcastMessage(const string& message, Client client);
 
 
     void    setKey(const string& key);

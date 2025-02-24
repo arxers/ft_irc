@@ -29,9 +29,9 @@ void    Channel::broadcastMessage(const string& message, Client client) {
     for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         std::cout << it->second.getNickname() << '\n';
         if (it->first != client.getSocket()) {
-            std::cout << "sending to " << it->first << ": \"" << message << "\"\n";
-            send(it->first, message.c_str(), message.size(), 0);
-            // YOU NEED TO SEND BACK IN A PROPER FORMAT!!!
+            string formattedMessage = ":poopoo " + client.getNickname() + " PRIVMSG " + it->second.getNickname() + " :" + message + "\r\n";
+            std::cout << "\n\n formatted: " << formattedMessage << "\n\n";
+            send(it->first, formattedMessage.c_str(), formattedMessage.size(), 0);
         }
     }
 }

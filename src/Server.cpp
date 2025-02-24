@@ -213,12 +213,12 @@ string  Server::_join(Client& client, const vector<string>& params) {
     return ("");
 }
 
-string  Server::_privMessage(Client& client, const vector<string>& params) {
+string  Server::_privMsg(Client& client, const vector<string>& params) {
     if (params[0][0] == '#') {
         channelmap_t::iterator it = this->_channels.find(params[0]);
         if (it == this->_channels.end())
             return (Numerics::formatMessage(this->_name, "401", client.getNickname(), "No such nick/channel"));
-        it->second.broadcastMessage("AHHH\r\n", client);
+        it->second.broadcastMessage(params[1], client);
     }
             
     return ("");
@@ -254,7 +254,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case NICK:      return (_nick(client, params));
         case USER:      return (_user(client, params));
         case JOIN:      return (_join(client, params));
-        case PRIVMSG:   return (_privMessage(client, params));
+        case PRIVMSG:   return (_privMsg(client, params));
         case KICK:      return ("KICK\n");
         case INVITE:    return ("INVITE\n");
         case TOPIC:     return ("TOPIC\n");
