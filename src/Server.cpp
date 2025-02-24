@@ -95,7 +95,7 @@ void    Server::_handleClient(vector<pollfd>& poll_fds, struct pollfd& client_pf
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos + 2);
         outputBuffer += _generateResponse(this->_clients[client_pfd.fd], input);
-        cout << input;
+        cout << "<" << client_pfd.fd << ": " << input;
         inputBuffer.erase(0, pos + 2);
     }
 }
@@ -203,6 +203,9 @@ string  Server::_join(Client& client, const vector<string>& params) {
     return ("");
 }
 
+string  Server::_privMessage(Client& client, const vector<string>& params) {
+}
+
 string Server::_generateResponse(Client& client, Message message) {
     string commandUpper = strToUpper(message.getCommand());
     commandmap_t::iterator   it = this->_commands.find(commandUpper);
@@ -227,7 +230,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case NICK:      return (_nick(client, params));
         case USER:      return (_user(client, params));
         case JOIN:      return (_join(client, params));
-        case PRIVMSG:   return ("PRIVMSG");
+        case PRIVMSG:   return (_privMessage(client, params));
         case KICK:      return ("KICK");
         case INVITE:    return ("INVITE");
         case TOPIC:     return ("TOPIC");
@@ -243,7 +246,7 @@ void    Server::_sendToClient(Client& client) {
 
     if (!size)
         return ;
-    // cout << buf;
+    cout << ">" << client.getSocket() << buf;
     send(fd, buf.c_str(), size, 0);
     buf.clear();
 }
