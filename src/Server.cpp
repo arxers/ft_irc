@@ -51,7 +51,10 @@ void    Server::_addClient(vector<struct pollfd>& pollFds) {
 
     if (this->_clientCount < MAX_CLIENTS) {
         this->_clientCount++;
-        this->_clients[clientFd] = Client(clientFd, clientAddr);
+        Client newClient(clientFd, clientAddr);
+        if (this->_password.empty())
+            newClient.authenticate();
+        this->_clients[clientFd] = newClient;
         struct pollfd   client_pfd = {clientFd, POLLIN, 0};
         pollFds.push_back(client_pfd);
         cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
@@ -95,7 +98,7 @@ void    Server::_handleClient(vector<pollfd>& pollFds, struct pollfd& client_pfd
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos);
         outputBuffer += _generateResponse(this->_clients[client_pfd.fd], input);
-        cout << "<" << client_pfd.fd << ": " << input;
+        cout << "<" << client_pfd.fd << ": " << input << '\n';
         inputBuffer.erase(0, pos + 2);
     }
 }
