@@ -207,8 +207,19 @@ string  Server::_join(Client& client, const vector<string>& params) {
     channelmap_t::iterator it = this->_channels.find(params[0]);
     if (it != this->_channels.end()) {
         it->second.addClient(client);
+        client.addChannel(it->second);
         return ("");
     }
+
+    // std::istringstream  issChannels(params[1]);
+    // std::istringstream  issKeys(params.size() > 2 ? params[2] : "");
+    // string  channelStr, keyStr;
+    // map<string, string> channelKeyMap;
+    // while (std::getline(issChannels, channelStr, ',')) {
+    //     if (!std::getline(issKeys, keyStr, ','))
+    //         keyStr = "";
+    //     channelKeyMap[channelStr] = keyStr;
+    // }
 
     Channel newChannel(params[0], client);
     this->_channels[params[0]] = newChannel;
