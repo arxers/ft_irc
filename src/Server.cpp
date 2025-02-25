@@ -76,29 +76,29 @@ void    Server::_removeClient(int socketFd, vector<pollfd>& pollFds) {
     }
 }
 
-void    Server::_handleClient(vector<pollfd>& pollFds, struct pollfd& client_pfd) {
+void    Server::_handleClient(vector<pollfd>& pollFds, int clientFd) {
     char        buf[MAX_MSG_LEN + 1];
     int         receivedBytes;
 
-    receivedBytes = recv(client_pfd.fd, buf, sizeof(buf), 0);
+    receivedBytes = recv(clientFd, buf, sizeof(buf), 0);
     if (receivedBytes == 0) {
-        _removeClient(client_pfd.fd, pollFds);
+        _removeClient(clientFd, pollFds);
         return ;
     }
 
-    string &inputBuffer = this->_clients[client_pfd.fd].getInputBuffer();
+    string &inputBuffer = this->_clients[clientFd].getInputBuffer();
     inputBuffer.append(buf, receivedBytes);
     if (inputBuffer.length() > MAX_MSG_LEN) {
         inputBuffer = inputBuffer.substr(0, MAX_MSG_LEN - 2);
         inputBuffer += "\r\n";
     }
     
-    string &outputBuffer = this->_clients[client_pfd.fd].getOutputBuffer();
+    string &outputBuffer = this->_clients[clientFd].getOutputBuffer();
     while (inputBuffer.find("\r\n") != string::npos) {
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos);
-        outputBuffer += _generateResponse(this->_clients[client_pfd.fd], input);
-        cout << "<" << client_pfd.fd << ": " << input << '\n';
+        outputBuffer += _generateResponse(this->_clients[clientFd], input);
+        cout << "<" << clientFd << ": " << input << '\n';
         inputBuffer.erase(0, pos + 2);
     }
 }
@@ -307,15 +307,11 @@ void    Server::run() {
                 if (pollFds[i].fd == this->_listeningSocket)
                     _addClient(pollFds);
                 else
-                    _handleClient(pollFds, pollFds[i]);
+                    _handleClient(pollFds, pollFds[i].fd);
             }
         }
-        for (size_t i = 0; i < pollFds.size(); ++i) {
-            if (this->_clients.find(pollFds[i].fd) != this->_clients.end()) {
-                Client& client = this->_clients[pollFds[i].fd];
-                _sendToClient(client);
-            }
-        }
+        for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+            _sendToClient(it->second);
     }
 }
 

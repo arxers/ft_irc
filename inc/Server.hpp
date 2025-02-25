@@ -66,7 +66,7 @@ private:
     int     _createSocket();
     void    _addClient(vector<pollfd>& pollFds);
     void    _removeClient(int fd, vector<pollfd>& pollFds);
-    void    _handleClient(vector<pollfd>& pollFds, struct pollfd& clientPollFd);
+    void    _handleClient(vector<pollfd>& pollFds, int clientFd);
     string  _generateResponse(Client& client, Message message);
     void    _sendToClient(Client& client);
     Client* _getClientByNickname(const string& nickname);
