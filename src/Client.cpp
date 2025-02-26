@@ -56,7 +56,7 @@ const string&  Client::getNickname() const {
 const string&  Client::getUsername() const {
     return (this->_username);
 }
-const map<string, Channel>& Client::getChannels() const {
+const map<string, Channel*>& Client::getChannels() const {
     return (this->_channels);
 }
 
@@ -76,8 +76,8 @@ void    Client::setRealname(const string& realname) {
     this->_realname = realname;
 }
 
-void    Client::addChannel(const Channel channel) {
-    this->_channels[channel.getName()] = channel;
+void    Client::addChannel(Channel channel) {
+    this->_channels[channel.getName()] = &channel;
 }
 
 void    Client::removeChannel(const Channel channel) {

@@ -10,8 +10,8 @@ class Client;
 class Channel {
 private:
     string              _name;
-    map<int, Client>    _clients;
-    map<int, Client>    _operators;     // o
+    map<int, Client*>    _clients;
+    map<int, Client*>    _operators;     // o
     bool                _inviteOnly;    // i
     bool                _topicLock;     // t
     int                 _userLimit;     // l

@@ -35,7 +35,7 @@ private:
     string  _realname;
     string  _password;
 
-    map<string, Channel>    _channels;
+    map<string, Channel*>    _channels;
 
 
 public:
@@ -54,7 +54,7 @@ public:
     e_client_state  getState() const;
     const string&   getNickname() const;
     const string&   getUsername() const;
-    const map<string, Channel>& getChannels() const;
+    const map<string, Channel*>& getChannels() const;
 
     void    setState(e_client_state state);
     void    setNickname(const string& nickname);

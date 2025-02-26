@@ -13,25 +13,22 @@
 
 // public:
 void    Channel::addClient(Client client) {
-    this->_clients[client.getSocket()] = client;
+    this->_clients[client.getSocket()] = &client;
 }
 void    Channel::removeClient(Client client) {
     this->_clients.erase(client.getSocket());
 }
 void    Channel::addOperator(Client client) {
-    this->_operators[client.getSocket()] = client;
+    this->_operators[client.getSocket()] = &client;
 }
 void    Channel::removeOperator(Client client) {
     this->_clients.erase(client.getSocket());
 }
 
 void    Channel::broadcastMessage(const string& message, Client client) {
-    for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+    for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         if (it->first != client.getSocket()) {
             string formattedMessage = ":" + client.getNickname() + " PRIVMSG " + this->_name + " :" + message + "\r\n";
-            // for (size_t i = 0; i < formattedMessage.length(); i++)
-            //     std::cout << "[" << std::hex << (int)formattedMessage[i] << "]"; //raw hexdump for debugging
-            std::cout << std::endl;
             send(it->first, formattedMessage.c_str(), formattedMessage.size(), 0);
         }
     }
