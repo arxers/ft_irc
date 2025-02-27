@@ -211,8 +211,8 @@ string  Server::_join(Client& client, const vector<string>& params) {
         return ("");
     }
 
-    // std::istringstream  issChannels(params[1]);
-    // std::istringstream  issKeys(params.size() > 2 ? params[2] : "");
+    // std::istringstream  issChannels(params[0]);
+    // std::istringstream  issKeys(params.size() >= 2 ? params[1] : "");
     // string  channelStr, keyStr;
     // map<string, string> channelKeyMap;
     // while (std::getline(issChannels, channelStr, ',')) {
