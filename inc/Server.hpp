@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <utility>
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -24,6 +25,7 @@
 using std::map;
 using std::string;
 using std::vector;
+using std::pair;
 using std::cout;
 using std::cerr;
 
