@@ -12,8 +12,12 @@
 
 
 // public:
-void    Channel::addClient(Client client) {
-    this->_clients[client.getSocket()] = &client;
+int    Channel::addClient(Client* client, const string& key) {
+    if (!this->_key.empty() && key != this->_key)
+        return (-1);
+    this->_clients[client->getSocket()] = client;
+    client->addChannel(this->_name);
+    return (0);
 }
 void    Channel::removeClient(Client client) {
     this->_clients.erase(client.getSocket());
@@ -48,9 +52,10 @@ const string& Channel::getKey() const{
 
 Channel::Channel() {}
 
-Channel::Channel(const string& channelName, Client client) :
+Channel::Channel(const string& channelName, Client& client) :
 _name(channelName), _inviteOnly(false), _topicLock(false), _userLimit(-1) {
-    addClient(client);
+    client.addChannel(channelName);
+    addClient(&client, "");
     addOperator(client);
 }
 

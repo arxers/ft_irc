@@ -10,7 +10,7 @@ void    Client::authenticate() {
 }
 
 void    Client::addChannel(const string& channel) {
-    (void)channel;
+    this->_channels.push_back(channel);
 }
 void    Client::removeChannel(const string& channel) {
     (void)channel;
@@ -56,7 +56,7 @@ const string&  Client::getNickname() const {
 const string&  Client::getUsername() const {
     return (this->_username);
 }
-const map<string, Channel*>& Client::getChannels() const {
+const vector<string>& Client::getChannels() const {
     return (this->_channels);
 }
 
@@ -74,14 +74,6 @@ void    Client::setUsername(const string& username) {
 
 void    Client::setRealname(const string& realname) {
     this->_realname = realname;
-}
-
-void    Client::addChannel(Channel channel) {
-    this->_channels[channel.getName()] = &channel;
-}
-
-void    Client::removeChannel(const Channel channel) {
-    (void)channel;
 }
 
 Client::Client() {}

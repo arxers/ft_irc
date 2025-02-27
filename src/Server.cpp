@@ -186,7 +186,7 @@ string  Server::_user(Client& client, const vector<string>& params) {
 }
 
 bool    isValidChannelName(const std::string& channel) {
-    if (channel.empty())
+    if (channel.empty() || channel.length() < 2)
         return (false);
     if (channel[0] != '#')
         return (false);
@@ -201,8 +201,7 @@ string  Server::_join(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
     // check channel name
-    if (!isValidChannelName(params[0]))
-        return Numerics::formatMessage(this->_name, "403", client.getNickname(), params[0], "No such channel");
+
 
     // make channel map from input params
     std::istringstream  issChannels(params[0]);
@@ -215,17 +214,32 @@ string  Server::_join(Client& client, const vector<string>& params) {
         channelKeyMap.push_back(std::make_pair(channelStr, keyStr));
     }
 
-    channelmap_t::iterator it = this->_channels.find(params[0]);
-    if (it != this->_channels.end()) {
-        it->second.addClient(client);
-        client.addChannel(it->second);
-        return ("");
+    string reply;
+    for (size_t i = 0; i < channelKeyMap.size(); ++i) {
+        if (!isValidChannelName(channelKeyMap[i].first)) {
+            reply += Numerics::formatMessage(this->_name, "403", client.getNickname(), channelKeyMap[i].first, "No such channel");
+            continue ;
+        } //if channel already exists
+        if (this->_channels.find(channelKeyMap[i].first) != this->_channels.end()) {
+            if (this->_channels[channelKeyMap[i].first].addClient(&client, channelKeyMap[i].second) == -1)
+                reply += "wrong key\r\n";
+        } else { //else create channel
+            Channel newChannel(channelKeyMap[i].first, client);
+            this->_channels[channelKeyMap[i].first] = newChannel;
+        }
     }
 
-    Channel newChannel(params[0], client);
-    this->_channels[params[0]] = newChannel;
-    client.addChannel(newChannel);
-    return ("");
+    // channelmap_t::iterator it = this->_channels.find(params[0]);
+    // if (it != this->_channels.end()) {
+    //     it->second.addClient(client);
+    //     client.addChannel(it->second);
+    //     return ("");
+    // }
+
+    // Channel newChannel(params[0], client);
+    // this->_channels[params[0]] = newChannel;
+    // client.addChannel(newChannel);
+    return (reply);
 }
 
 // string  Server::_join(Client& client, const vector<string>& params) {

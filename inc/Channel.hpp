@@ -18,7 +18,7 @@ private:
     string              _key;           // k
 
 public:
-    void    addClient(Client client);
+    int     addClient(Client* client, const string& key);
     void    removeClient(Client client);
     void    addOperator(Client client);
     void    removeOperator(Client client);
@@ -32,7 +32,7 @@ public:
     const string&   getKey() const;
 
     Channel();
-    Channel(const string& channelName, Client client);
+    Channel(const string& channelName, Client& client);
     Channel(const Channel& rhs);
     Channel& operator=(const Channel& rhs);
     ~Channel();
