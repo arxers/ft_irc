@@ -112,7 +112,7 @@ static string  strToUpper(string s) {
 string Server::_cap(const vector<string>& params) {
     if (params.empty() || params[0] != "LS")
         return ("");
-    return (Numerics::formatMessage(this->_name, "CAP * LS :"));
+    return (":" + this->_name + " " + "CAP * LS :" + CRLF);
 }
 
 string  Server::_pass(Client& client, const vector<string>& params) {

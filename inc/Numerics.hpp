@@ -156,10 +156,6 @@ private:
     Numerics(const Numerics&);
     Numerics&    operator=(const Numerics&);
 public:
-    static string   formatMessage(const string& server, const string& message) {
-        return (":" + server + " " + message + CRLF);
-    }
-
     static string   formatMessage(const string& server, e_numeric num, const string& nick, const string& message) {
         std::ostringstream oss;
         oss << num;
