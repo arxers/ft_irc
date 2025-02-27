@@ -117,14 +117,14 @@ string Server::_cap(const vector<string>& params) {
 
 string  Server::_pass(Client& client, const vector<string>& params) {
     if (client.isAuthenticated())
-        return (Numerics::formatMessage(this->_name, "462", client.getNickname(), "Unauthorized command (already registered)"));
+        return (Numerics::formatMessage(this->_name, ERR_ALREADYREGISTERED, client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 1)
-        return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
     if (params[0] == this->_password) {
         client.authenticate();
         return ("");
     }
-    return (Numerics::formatMessage(this->_name, "464", client.getNickname(), "Password incorrect"));
+    return (Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, client.getNickname(), "Password incorrect"));
 }
 
 Client* Server::_getClientByNickname(const string& nickname) {
@@ -160,27 +160,27 @@ bool    Server::_isValidNickname(const string& nickname) {
 
 string  Server::_nick(Client& client, const vector<string>& params) {
     if (params.size() < 1)
-        return (Numerics::formatMessage(this->_name, "431", client.getNickname(), "No nickname given"));
+        return (Numerics::formatMessage(this->_name, ERR_NONICKNAMEGIVEN, client.getNickname(), "No nickname given"));
     if (!_isValidNickname(params[0]))
-        return (Numerics::formatMessage(this->_name, "432", client.getNickname(), params[0], "Erroneous nickname"));
+        return (Numerics::formatMessage(this->_name, ERR_ERRONEUSNICKNAME, client.getNickname(), params[0], "Erroneous nickname"));
     if (_getClientByNickname(params[0]))
-        return (Numerics::formatMessage(this->_name, "433", client.getNickname(), params[0], "Nickname is already in use"));
+        return (Numerics::formatMessage(this->_name, ERR_NICKNAMEINUSE, client.getNickname(), params[0], "Nickname is already in use"));
     client.setNickname(params[0]);
     if (client.getState() == AUTHENTICATED && client.getUsername() != "") {
         client.setState(REGISTERED);
-        return (Numerics::formatMessage(this->_name, "001", client.getNickname(), "Welcome to the Internet Relay Network, " + client.getNickname()));
+        return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to the Internet Relay Network, " + client.getNickname()));
     }
     return ("");
 }
 
 string  Server::_user(Client& client, const vector<string>& params) {
     if (params.size() < 4)
-        return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
     client.setUsername(params[0]);
     client.setRealname(params[3]);
     if (client.getState() == AUTHENTICATED && client.getNickname() != "*") {
         client.setState(REGISTERED);
-        return (Numerics::formatMessage(this->_name, "001", client.getNickname(), "Welcome to " + this->_name + ", " + client.getNickname()));
+        return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to " + this->_name + ", " + client.getNickname()));
     }
     return ("");
 }
@@ -199,7 +199,7 @@ bool    isValidChannelName(const std::string& channel) {
 
 string  Server::_join(Client& client, const vector<string>& params) {
     if (params.size() < 1)
-        return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
     // check channel name
 
 
@@ -217,28 +217,17 @@ string  Server::_join(Client& client, const vector<string>& params) {
     string reply;
     for (size_t i = 0; i < channelKeyMap.size(); ++i) {
         if (!isValidChannelName(channelKeyMap[i].first)) {
-            reply += Numerics::formatMessage(this->_name, "403", client.getNickname(), channelKeyMap[i].first, "No such channel");
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), channelKeyMap[i].first, "No such channel");
             continue ;
         } //if channel already exists
         if (this->_channels.find(channelKeyMap[i].first) != this->_channels.end()) {
             if (this->_channels[channelKeyMap[i].first].addClient(&client, channelKeyMap[i].second) == -1)
-                reply += "wrong key\r\n";
+            reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+k)");
         } else { //else create channel
             Channel newChannel(channelKeyMap[i].first, client);
             this->_channels[channelKeyMap[i].first] = newChannel;
         }
     }
-
-    // channelmap_t::iterator it = this->_channels.find(params[0]);
-    // if (it != this->_channels.end()) {
-    //     it->second.addClient(client);
-    //     client.addChannel(it->second);
-    //     return ("");
-    // }
-
-    // Channel newChannel(params[0], client);
-    // this->_channels[params[0]] = newChannel;
-    // client.addChannel(newChannel);
     return (reply);
 }
 
@@ -276,7 +265,7 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
     if (params[0][0] == '#') {
         channelmap_t::iterator it = this->_channels.find(params[0]);
         if (it == this->_channels.end())
-            return (Numerics::formatMessage(this->_name, "401", client.getNickname(), "No such nick/channel"));
+            return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), "No such nick/channel"));
         it->second.broadcastMessage(params[1], client);
     }
             
@@ -301,11 +290,11 @@ string Server::_generateResponse(Client& client, Message message) {
 
     if (client.getState() < AUTHENTICATED) {
         if (command != PASS)
-            return (Numerics::formatMessage(this->_name, "451", client.getNickname(), "You have not registered"));
+            return (Numerics::formatMessage(this->_name, ERR_NOTREGISTERED, client.getNickname(), "You have not registered"));
     }
     else if (client.getState() < REGISTERED) {
         if (command != NICK && command != USER)
-            return (Numerics::formatMessage(this->_name, "451", client.getNickname(), "You have not registered"));
+            return (Numerics::formatMessage(this->_name, ERR_NOTREGISTERED, client.getNickname(), "You have not registered"));
     }
 
     switch (command) {
@@ -319,7 +308,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case TOPIC:     return ("TOPIC\n");
         case MODE:      return ("MODE\n");
         case QUIT:      return (_quit(client, params));
-        default: return (Numerics::formatMessage(this->_name, "421", client.getNickname(), message.getCommand(), "Unknown command!"));
+        default: return (Numerics::formatMessage(this->_name, ERR_UNKNOWNCOMMAND, client.getNickname(), message.getCommand(), "Unknown command!"));
     }
 }
 
