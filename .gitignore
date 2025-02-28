@@ -3,4 +3,3 @@
 *.d
 a.out
 ircserv
-src/messagetest.cpp
