@@ -33,7 +33,7 @@ void    Channel::broadcastMessage(const string& message, Client client) {
     for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         if (it->first != client.getSocket()) {
             string formattedMessage = ":" + client.getNickname() + " PRIVMSG " + this->_name + " :" + message + "\r\n";
-            send(it->first, formattedMessage.c_str(), formattedMessage.size(), 0);
+            send(it->first, formattedMessage.c_str(), formattedMessage.size(), MSG_NOSIGNAL);
         }
     }
 }
