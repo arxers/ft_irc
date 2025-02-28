@@ -16,6 +16,11 @@ void    Client::removeChannel(const string& channel) {
     (void)channel;
 }
 
+void    Client::sendMessage(const string& message, const string& sender) {
+    string formattedMessage = ":" + sender + " PRIVMSG " + this->_nickname + " :" + message + "\r\n";
+        send(this->_socketFd, formattedMessage.c_str(), formattedMessage.size(), MSG_NOSIGNAL);
+}
+
 // Predicates, getters, setters
 
 bool    Client::isOperator() const {

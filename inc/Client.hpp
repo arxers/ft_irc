@@ -42,6 +42,7 @@ public:
     void    authenticate();
     void    addChannel(const string& channel);
     void    removeChannel(const string& channel);
+    void    sendMessage(const string& message, const string& sender);
 
     // Predicates, getters, setters
     bool    isOperator() const ;
@@ -60,6 +61,7 @@ public:
     void    setNickname(const string& nickname);
     void    setUsername(const string& Username);
     void    setRealname(const string& Realname);
+
 
     Client();
     Client(const Client& rhs);

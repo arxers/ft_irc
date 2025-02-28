@@ -262,13 +262,18 @@ string  Server::_join(Client& client, const vector<string>& params) {
 // }
 
 string  Server::_privMsg(Client& client, const vector<string>& params) {
-    if (params[0][0] == '#') {
+    if (params[0][0] == '#') { // if target is a channel
         channelmap_t::iterator it = this->_channels.find(params[0]);
         if (it == this->_channels.end())
             return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), "No such nick/channel"));
         it->second.broadcastMessage(params[1], client);
+        return ("");
     }
-            
+    // else if target is a client
+    Client* targetClient = _getClientByNickname(params[0]);
+    if (!targetClient)
+        return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), "No such nick/channel"));
+    targetClient->sendMessage(params[1], client.getNickname());
     return ("");
 }
 
@@ -320,7 +325,7 @@ void    Server::_sendToClient(Client& client) {
     if (!size)
         return ;
     cout << ">" << client.getSocket() << buf;
-    send(fd, buf.c_str(), size, 0);
+    send(fd, buf.c_str(), size, MSG_NOSIGNAL);
     buf.clear();
 }
 
