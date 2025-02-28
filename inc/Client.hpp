@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -48,6 +49,7 @@ public:
     bool    isOperator() const ;
     bool    isAuthenticated() const;
     bool    isConnected() const;
+    bool    isInChannel(const string& channel);
     int     getSocket() const;
     string&    getInputBuffer();
     string&    getOutputBuffer();
