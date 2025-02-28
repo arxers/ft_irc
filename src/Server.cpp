@@ -262,16 +262,19 @@ string  Server::_join(Client& client, const vector<string>& params) {
 // }
 
 string  Server::_privMsg(Client& client, const vector<string>& params) {
+    
     if (params.empty())
-        return (Numerics::formatMessage(this->_name, ERR_NORECIPIENT, client.getNickname(), "No recipient given (PRIVMSG)"));
-        
+    return (Numerics::formatMessage(this->_name, ERR_NORECIPIENT, client.getNickname(), "No recipient given (PRIVMSG)"));
+    
     if (params.size() == 1)
-        return (Numerics::formatMessage(this->_name, ERR_NOTEXTTOSEND, client.getNickname(), "No text to send"));
-
+    return (Numerics::formatMessage(this->_name, ERR_NOTEXTTOSEND, client.getNickname(), "No text to send"));
+    
     if (params[0][0] == '#') { // if target is a channel
         channelmap_t::iterator it = this->_channels.find(params[0]);
         if (it == this->_channels.end())
             return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), "No such nick/channel"));
+        if (!client.isInChannel(params[0]))
+            return (Numerics::formatMessage(this->_name, ERR_CANNOTSENDTOCHAN, client.getNickname(), params[0], "Cannot send to channel"));
         it->second.broadcastMessage(params[1], client);
         return ("");
     }
