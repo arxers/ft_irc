@@ -145,7 +145,7 @@ bool    Server::_isValidNickname(const string& nickname) {
         return (false);
 
     string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    string digit = "1234567890";
+    string digits = "1234567890";
     string special = "[]\\_^{}`";
 
     if (letters.find(nickname[0]) == string::npos &&
@@ -155,7 +155,7 @@ bool    Server::_isValidNickname(const string& nickname) {
     for (size_t i = 1; i < nickname.length(); ++i) {
         if (letters.find(nickname[i]) == string::npos &&
             special.find(nickname[i]) == string::npos &&
-            digit.find(nickname[i]) == string::npos &&
+            digits.find(nickname[i]) == string::npos &&
             nickname[i] != '-')
             return (false);
     }
@@ -353,6 +353,10 @@ static bool isValidPort(int n) {
     return (n >= 0 && n <= 65535);
 }
 
+static bool isNumber(const string& str) {
+    return (str.find_first_not_of("1234567890") == string::npos);
+}
+
 static void initCommandMap(commandmap_t& map) {
     map["CAP"]      = CAP;
     map["PASS"]     = PASS;
@@ -368,11 +372,11 @@ static void initCommandMap(commandmap_t& map) {
 }
 
 void    Server::init(string name, string port, string password) {
+    if (!isNumber(port) || !isValidPort(std::atoi(this->_port.c_str())))
+        throw std::invalid_argument("init: Valid ports are 0-65535");
     this->_name = name;
     this->_port = port;
     this->_password = password;
-    if (!isValidPort(std::atoi(this->_port.c_str())))
-        throw std::invalid_argument("init: Valid ports are 0-65535");
     initCommandMap(this->_commands);
 }
 
