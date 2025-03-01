@@ -6,7 +6,7 @@ int Server::_createSocket() {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     if (getaddrinfo(NULL, this->_port.c_str(), &hints, &res) == -1)
-        throw std::runtime_error("Failed to get address info");
+        throw std::runtime_error("_createSocket: getaddrinfo: Failed to get address info");
 
     int socketFd = -1;
     for (p = res; p != NULL; p = p->ai_next) {
@@ -16,7 +16,7 @@ int Server::_createSocket() {
 
         int opt = 1;
         if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
-            cerr << "setsockopt() failed\n";
+            cerr << "_createSocket: setsockopt() failed\n";
             continue ;
         }
 
@@ -28,13 +28,13 @@ int Server::_createSocket() {
     }
     if (socketFd == -1) {
         freeaddrinfo(res);
-        throw std::runtime_error("Failed to bind socket");
+        throw std::runtime_error("_createSocket: Failed to bind socket");
     }
 
     if (listen(socketFd, MAX_CLIENTS) == -1) {
         close(socketFd);
         freeaddrinfo(res);
-        throw std::runtime_error("listen() failed");
+        throw std::runtime_error("_createSocket: listen() failed");
     }
 
     freeaddrinfo(res);
@@ -340,7 +340,7 @@ void    Server::_sendToClient(Client& client) {
 
     if (!size)
         return ;
-    cout << ">" << client.getSocket() << buf;
+    cout << ">" << client.getSocket() << ": " << buf;
     send(fd, buf.c_str(), size, MSG_NOSIGNAL);
     buf.clear();
 }
@@ -349,6 +349,7 @@ void    Server::start() {
     if (this->_name.empty())
         throw (std::runtime_error("start: Server not initialized"));
 
+    this->_listeningSocket = _createSocket();
     cout << "Server " << this->_name << " started successfully!\n"
          << "Listening on port " << this->_port << "...\n"
          << "Waiting for client connections...\n";
@@ -402,7 +403,6 @@ void    Server::init(string name, string port, string password) {
     this->_password = password;
     if (!isValidPort(std::atoi(this->_port.c_str())))
         throw std::invalid_argument("init: Port must be within 1024-49151");
-    this->_listeningSocket = _createSocket();
     initCommandMap(this->_commands);
 }
 
