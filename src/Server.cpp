@@ -345,7 +345,14 @@ void    Server::_sendToClient(Client& client) {
     buf.clear();
 }
 
-void    Server::run() {
+void    Server::start() {
+    if (this->_name.empty())
+        throw (std::runtime_error("start: Server not initialized"));
+
+    cout << "Server " << this->_name << " started successfully!\n"
+         << "Listening on port " << this->_port << "...\n"
+         << "Waiting for client connections...\n";
+
     running = true;
     struct pollfd   server_pfd = {this->_listeningSocket, POLLIN, 0};
     this->_pollFds.push_back(server_pfd);
@@ -389,14 +396,18 @@ static void initCommandMap(commandmap_t& map) {
     map["QUIT"]     = QUIT;
 }
 
-Server::Server(string name, string port, string password) :
-_name(name), _port(port), _password(password), _clientCount(0) {
+void    Server::init(string name, string port, string password) {
+    this->_name = name;
+    this->_port = port;
+    this->_password = password;
     if (!isValidPort(std::atoi(this->_port.c_str())))
-        throw std::invalid_argument("Port must be within 1024-49151");
+        throw std::invalid_argument("init: Port must be within 1024-49151");
     this->_listeningSocket = _createSocket();
     initCommandMap(this->_commands);
 }
 
+
+Server::Server() {}
 Server::~Server() {
     close(this->_listeningSocket);
 
@@ -405,6 +416,5 @@ Server::~Server() {
     }
 }
 
-Server::Server() {}
 Server::Server(const Server&) {}
 Server& Server::operator=(const Server&) { return (*this); }

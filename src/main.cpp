@@ -9,21 +9,21 @@ static void signal_handler(int) {
 
 int main(int ac, char** av) {
     if (ac != 3) {
-        std::cerr << "Usage: ./ircserv <port> <password>\n";
+        cerr << "Usage: ./ircserv <port> <password>\n";
         return (EXIT_FAILURE);
     }
 
-    std::string port(av[1]);
-    std::string password(av[2]);
+    string port(av[1]);
+    string password(av[2]);
 
     signal(SIGINT, signal_handler);
     
     try {
-        Server server("poopoo", port, password);
-        server.run();
+        Server server;
+        server.init("poopoo", port, password);
+        server.start();
         
-    }
-    catch (std::exception& e) {
-        std::cerr << "Error: " << e.what() << '\n';
+    } catch (std::exception& e) {
+        cerr << "Error: " << e.what() << '\n';
     }
 }

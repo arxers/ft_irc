@@ -63,7 +63,6 @@ private:
     map<string, Channel>    _channels;
     map<string, e_command>  _commands;
 
-    Server();
     Server(const Server&);
     Server& operator=(const Server&);
 
@@ -86,8 +85,9 @@ private:
     string  _quit(Client& client, const vector<string>& params);
     
 public:
-    void    run();
+    void    start();
+    void    init(string name, string port, string password);
 
-    Server(string name, string port, string password);
+    Server();
     ~Server();
 };
