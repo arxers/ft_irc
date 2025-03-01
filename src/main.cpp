@@ -4,7 +4,7 @@ volatile sig_atomic_t running = false;
 
 static void signal_handler(int) {
     running = false;
-    std::cout << '\n';
+    cout << '\n';
 }
 
 int main(int ac, char** av) {

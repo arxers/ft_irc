@@ -171,11 +171,14 @@ string  Server::_nick(Client& client, const vector<string>& params) {
     if (_getClientByNickname(params[0]))
         return (Numerics::formatMessage(this->_name, ERR_NICKNAMEINUSE, client.getNickname(), params[0], "Nickname is already in use"));
     client.setNickname(params[0]);
+    string reply;
     if (client.getState() == AUTHENTICATED && client.getUsername() != "") {
         client.setState(REGISTERED);
-        return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to the Internet Relay Network, " + client.getNickname()));
+        reply += Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to the Internet Relay Network, " + client.getNickname());
+        // reply += Numerics::formatMessage(this->_name, RPL_MYINFO, , ":poopoo MYINFO poopoo 1.0 o o :@"
+        // welcome burst
     }
-    return ("");
+    return (reply);
 }
 
 string  Server::_user(Client& client, const vector<string>& params) {
@@ -205,8 +208,6 @@ bool    isValidChannelName(const std::string& channel) {
 string  Server::_join(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
-    // check channel name
-
 
     // make channel map from input params
     std::istringstream  issChannels(params[0]);
