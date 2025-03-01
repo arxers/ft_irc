@@ -238,7 +238,6 @@ string  Server::_join(Client& client, const vector<string>& params) {
 }
 
 string  Server::_privMsg(Client& client, const vector<string>& params) {
-    
     if (params.empty())
     return (Numerics::formatMessage(this->_name, ERR_NORECIPIENT, client.getNickname(), "No recipient given (PRIVMSG)"));
     
@@ -351,7 +350,7 @@ void    Server::start() {
 }
 
 static bool isValidPort(int n) {
-    return (n >= 1024 && n <= 49151);
+    return (n >= 0 && n <= 65535);
 }
 
 static void initCommandMap(commandmap_t& map) {
@@ -373,19 +372,16 @@ void    Server::init(string name, string port, string password) {
     this->_port = port;
     this->_password = password;
     if (!isValidPort(std::atoi(this->_port.c_str())))
-        throw std::invalid_argument("init: Port must be within 1024-49151");
+        throw std::invalid_argument("init: Valid ports are 0-65535");
     initCommandMap(this->_commands);
 }
 
-
 Server::Server() {}
+Server::Server(const Server&) {}
+Server& Server::operator=(const Server&) { return (*this); }
 Server::~Server() {
     close(this->_listeningSocket);
-
     for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         close(it->first);
     }
 }
-
-Server::Server(const Server&) {}
-Server& Server::operator=(const Server&) { return (*this); }
