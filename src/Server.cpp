@@ -57,7 +57,7 @@ void    Server::_addClient() {
         this->_clients[clientFd] = newClient;
         struct pollfd   client_pfd = {clientFd, POLLIN, 0};
         this->_pollFds.push_back(client_pfd);
-        cout << inet_ntoa(clientAddr.sin_addr) <<  " connected to socket FD: "
+        cout << newClient.getIp() <<  " connected to socket FD: "
              << clientFd << '\n';
         return ;
     }
@@ -126,7 +126,10 @@ string  Server::_pass(Client& client, const vector<string>& params) {
         return ("");
     }
     this->_disconnecting.push_back(client.getSocket());
-    return (Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, client.getNickname(), "Password incorrect"));
+    string  reply;
+    reply += Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, client.getNickname(), "Password incorrect");
+    reply += "ERROR :Closing Link: " + client.getIp() + " (Incorrect Password)\r\n";
+    return (reply);
 }
 
 Client* Server::_getClientByNickname(const string& nickname) {
@@ -308,11 +311,11 @@ string Server::_generateResponse(Client& client, Message message) {
 
     if (client.getState() < AUTHENTICATED) {
         if (command != PASS)
-            return (Numerics::formatMessage(this->_name, ERR_NOTREGISTERED, client.getNickname(), "You have not registered"));
+            return Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, "*", "Password required");
     }
     else if (client.getState() < REGISTERED) {
         if (command != NICK && command != USER)
-            return (Numerics::formatMessage(this->_name, ERR_NOTREGISTERED, client.getNickname(), "You have not registered"));
+            return Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, "*", "Password required");
     }
 
     switch (command) {
@@ -364,6 +367,7 @@ void    Server::run() {
             _sendToClient(it->second);
         for (vector<int>::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
             _removeClient(*it);
+        this->_disconnecting.clear();
     }
 }
 
