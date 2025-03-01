@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 using std::string;
 
@@ -158,13 +159,13 @@ private:
 public:
     static string   formatMessage(const string& server, e_numeric num, const string& nick, const string& message) {
         std::ostringstream oss;
-        oss << num;
+        oss << std::setw(3) << std::setfill('0') <<  num;
         return (":" + server + " " + oss.str() + " " + nick + " :" + message + CRLF);
     }
 
     static string   formatMessage(const string& server, e_numeric num, const string& nick, const string& param, const string& message) {
         std::ostringstream oss;
-        oss << num;
+        oss << std::setw(3) << std::setfill('0') <<  num;
         return (":" + server + " " + oss.str() + " " + nick + " " + param + " :" + message  + CRLF);
     }
 };
