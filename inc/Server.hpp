@@ -57,7 +57,8 @@ private:
     string  _password;
 
     int _clientCount;
-    map<int, Client>     _clients;
+    vector<pollfd>          _pollFds;
+    map<int, Client>        _clients;
     map<string, Channel>    _channels;
     map<string, e_command>  _commands;
 
@@ -66,9 +67,9 @@ private:
     Server& operator=(const Server&);
 
     int     _createSocket();
-    void    _addClient(vector<pollfd>& pollFds);
-    void    _removeClient(int fd, vector<pollfd>& pollFds);
-    void    _handleClient(vector<pollfd>& pollFds, int clientFd);
+    void    _addClient();
+    void    _removeClient(int fd);
+    void    _handleClient(int clientFd);
     string  _generateResponse(Client& client, Message message);
     void    _sendToClient(Client& client);
     Client* _getClientByNickname(const string& nickname);

@@ -41,7 +41,7 @@ int Server::_createSocket() {
     return (socketFd);
 }
 
-void    Server::_addClient(vector<struct pollfd>& pollFds) {
+void    Server::_addClient() {
     sockaddr_in clientAddr;
     socklen_t   clientLen = sizeof(clientAddr);
 
@@ -56,19 +56,19 @@ void    Server::_addClient(vector<struct pollfd>& pollFds) {
             newClient.authenticate();
         this->_clients[clientFd] = newClient;
         struct pollfd   client_pfd = {clientFd, POLLIN, 0};
-        pollFds.push_back(client_pfd);
+        this->_pollFds.push_back(client_pfd);
         cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
         return ;
     }
     close(clientFd);
 }
 
-void    Server::_removeClient(int socketFd, vector<pollfd>& pollFds) {
+void    Server::_removeClient(int socketFd) {
     cout << this->_clients[socketFd].getIp() << " disconnected\n";
     this->_clients.erase(socketFd);
-    for (vector<pollfd>::iterator it = pollFds.begin(); it != pollFds.end(); ++it) {
+    for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
         if (it->fd == socketFd) {
-            pollFds.erase(it);
+            this->_pollFds.erase(it);
             this->_clientCount--;
             close(socketFd);
             return ;
@@ -76,13 +76,13 @@ void    Server::_removeClient(int socketFd, vector<pollfd>& pollFds) {
     }
 }
 
-void    Server::_handleClient(vector<pollfd>& pollFds, int clientFd) {
+void    Server::_handleClient(int clientFd) {
     char        buf[MAX_MSG_LEN + 1];
     int         receivedBytes;
 
     receivedBytes = recv(clientFd, buf, sizeof(buf), 0);
     if (receivedBytes == 0) {
-        _removeClient(clientFd, pollFds);
+        _removeClient(clientFd);
         return ;
     }
 
@@ -341,23 +341,21 @@ void    Server::_sendToClient(Client& client) {
 }
 
 void    Server::run() {
-    vector<struct pollfd>  pollFds;
-
     running = true;
     struct pollfd   server_pfd = {this->_listeningSocket, POLLIN, 0};
-    pollFds.push_back(server_pfd);
+    this->_pollFds.push_back(server_pfd);
 
     while (running) {
-        int pollResult = poll(pollFds.data(), pollFds.size(), -1);
+        int pollResult = poll(this->_pollFds.data(), this->_pollFds.size(), -1);
         if (pollResult == -1) {
             break ;
         }
-        for (size_t i = 0; i < pollFds.size(); ++i) {
-            if (pollFds[i].revents & POLLIN) {
-                if (pollFds[i].fd == this->_listeningSocket)
-                    _addClient(pollFds);
+        for (size_t i = 0; i < this->_pollFds.size(); ++i) {
+            if (this->_pollFds[i].revents & POLLIN) {
+                if (this->_pollFds[i].fd == this->_listeningSocket)
+                    _addClient();
                 else
-                    _handleClient(pollFds, pollFds[i].fd);
+                    _handleClient(this->_pollFds[i].fd);
             }
         }
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
