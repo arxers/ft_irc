@@ -58,6 +58,7 @@ private:
 
     int _clientCount;
     vector<pollfd>          _pollFds;
+    vector<int>             _disconnecting;
     map<int, Client>        _clients;
     map<string, Channel>    _channels;
     map<string, e_command>  _commands;

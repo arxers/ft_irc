@@ -57,14 +57,15 @@ void    Server::_addClient() {
         this->_clients[clientFd] = newClient;
         struct pollfd   client_pfd = {clientFd, POLLIN, 0};
         this->_pollFds.push_back(client_pfd);
-        cout << inet_ntoa(clientAddr.sin_addr) <<  " connected\n";
+        cout << inet_ntoa(clientAddr.sin_addr) <<  " connected to socket FD: "
+             << clientFd << '\n';
         return ;
     }
     close(clientFd);
 }
 
 void    Server::_removeClient(int socketFd) {
-    cout << this->_clients[socketFd].getIp() << " disconnected\n";
+    cout << this->_clients[socketFd].getIp() << " disconnected from socket FD: " << socketFd << '\n';
     this->_clients.erase(socketFd);
     for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
         if (it->fd == socketFd) {
@@ -82,7 +83,7 @@ void    Server::_handleClient(int clientFd) {
 
     receivedBytes = recv(clientFd, buf, sizeof(buf), 0);
     if (receivedBytes == 0) {
-        _removeClient(clientFd);
+        this->_disconnecting.push_back(clientFd);
         return ;
     }
 
@@ -124,6 +125,7 @@ string  Server::_pass(Client& client, const vector<string>& params) {
         client.authenticate();
         return ("");
     }
+    this->_disconnecting.push_back(client.getSocket());
     return (Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, client.getNickname(), "Password incorrect"));
 }
 
@@ -360,6 +362,8 @@ void    Server::run() {
         }
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
             _sendToClient(it->second);
+        for (vector<int>::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
+            _removeClient(*it);
     }
 }
 

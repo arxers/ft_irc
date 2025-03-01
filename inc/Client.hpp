@@ -17,7 +17,6 @@ enum    e_client_state {
     CONNECTED,
     AUTHENTICATED,
     REGISTERED,
-    DISCONNECTED
 };
 
 class Channel;
