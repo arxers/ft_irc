@@ -71,7 +71,7 @@ private:
     void    _removeClient(int fd);
     void    _handleClient(int clientFd);
     string  _generateResponse(Client& client, Message message);
-    void    _sendToClient(Client& client);
+    void    _flushClientBuffer(Client& client);
     Client* _getClientByNickname(const string& nickname);
     bool    _isValidNickname(const string& nickname);
 

@@ -237,36 +237,6 @@ string  Server::_join(Client& client, const vector<string>& params) {
     return (reply);
 }
 
-// string  Server::_join(Client& client, const vector<string>& params) {
-//     if (params.size() < 1)
-//         return (Numerics::formatMessage(this->_name, "461", client.getNickname(), "Not enough parameters"));
-//     // check channel name
-//     if (!isValidChannelName(params[0]))
-//         return Numerics::formatMessage(this->_name, "403", client.getNickname(), params[0], "No such channel");
-    
-//     channelmap_t::iterator it = this->_channels.find(params[0]);
-//     if (it != this->_channels.end()) {
-//         it->second.addClient(client);
-//         client.addChannel(it->second);
-//         return ("");
-//     }
-
-//     // std::istringstream  issChannels(params[0]);
-//     // std::istringstream  issKeys(params.size() >= 2 ? params[1] : "");
-//     // string  channelStr, keyStr;
-//     // map<string, string> channelKeyMap;
-//     // while (std::getline(issChannels, channelStr, ',')) {
-//     //     if (!std::getline(issKeys, keyStr, ','))
-//     //         keyStr = "";
-//     //     channelKeyMap[channelStr] = keyStr;
-//     // }
-
-//     Channel newChannel(params[0], client);
-//     this->_channels[params[0]] = newChannel;
-//     client.addChannel(newChannel);
-//     return ("");
-// }
-
 string  Server::_privMsg(Client& client, const vector<string>& params) {
     
     if (params.empty())
@@ -334,7 +304,7 @@ string Server::_generateResponse(Client& client, Message message) {
     }
 }
 
-void    Server::_sendToClient(Client& client) {
+void    Server::_flushClientBuffer(Client& client) {
     int fd = client.getSocket();
     string& buf = client.getOutputBuffer();
     size_t  size = buf.size();
@@ -373,7 +343,7 @@ void    Server::start() {
             }
         }
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
-            _sendToClient(it->second);
+            _flushClientBuffer(it->second);
         for (vector<int>::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
             _removeClient(*it);
         this->_disconnecting.clear();
