@@ -297,7 +297,7 @@ vector< pair<string, string> > mapPairs(const vector<string>& params) {
 }
 
 string  Server::_kick(Client& client, const vector<string>& params) {
-    if (params.size() < 2)
+    if (params.empty() || params.size() < 2)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
     
     // make channel map from input params
