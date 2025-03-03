@@ -43,7 +43,6 @@ private:
 
 
 public:
-    void    authenticate();
     void    addChannel(const string& channel);
     void    removeChannel(const string& channel);
     void    sendMessage(const string& message, const string& sender);
