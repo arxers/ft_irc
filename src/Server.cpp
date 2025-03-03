@@ -52,8 +52,6 @@ void    Server::_addClient() {
     if (this->_clientCount < MAX_CLIENTS) {
         this->_clientCount++;
         Client newClient(clientFd, clientAddr);
-        if (this->_password.empty())
-            newClient.authenticate();
         this->_clients[clientFd] = newClient;
         if (this->_password.empty())
             newClient.setState(AUTHENTICATED);
@@ -127,7 +125,7 @@ string  Server::_pass(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
     if (params[0] == this->_password) {
-        client.authenticate();
+        client.setState(AUTHENTICATED);
         return ("");
     }
     this->_disconnecting.push_back(client.getSocket());

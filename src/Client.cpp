@@ -4,10 +4,6 @@
 
 
 // public:
-void    Client::authenticate() {
-    if (this->_state < AUTHENTICATED)
-        this->_state = AUTHENTICATED;
-}
 
 void    Client::addChannel(const string& channel) {
     this->_channels.push_back(channel);
