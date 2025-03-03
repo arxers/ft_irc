@@ -167,6 +167,12 @@ bool    Server::_isValidNickname(const string& nickname) {
     return (true);
 }
 
+string  Server::_sendWelcomeBurst(Client& client) {
+    client.setState(REGISTERED);
+    client.setLastPingTime();
+    return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to " + this->_name + ", " + client.getNickname()));
+}
+
 string  Server::_nick(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NONICKNAMEGIVEN, client.getNickname(), "No nickname given"));
@@ -175,15 +181,9 @@ string  Server::_nick(Client& client, const vector<string>& params) {
     if (_getClientByNickname(params[0]))
         return (Numerics::formatMessage(this->_name, ERR_NICKNAMEINUSE, client.getNickname(), params[0], "Nickname is already in use"));
     client.setNickname(params[0]);
-    string reply;
-    if (client.getState() == AUTHENTICATED && client.getUsername() != "") {
-        client.setState(REGISTERED);
-        client.setLastPingTime();
-        reply += Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to the Internet Relay Network, " + client.getNickname());
-        // reply += Numerics::formatMessage(this->_name, RPL_MYINFO, , ":poopoo MYINFO poopoo 1.0 o o :@"
-        // welcome burst
-    }
-    return (reply);
+    if (client.getState() == AUTHENTICATED && client.getUsername() != "")
+        return (_sendWelcomeBurst(client));
+    return ("");
 }
 
 string  Server::_user(Client& client, const vector<string>& params) {
@@ -191,11 +191,8 @@ string  Server::_user(Client& client, const vector<string>& params) {
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
     client.setUsername(params[0]);
     client.setRealname(params[3]);
-    if (client.getState() == AUTHENTICATED && client.getNickname() != "*") {
-        client.setState(REGISTERED);
-        client.setLastPingTime();
-        return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to " + this->_name + ", " + client.getNickname()));
-    }
+    if (client.getState() == AUTHENTICATED && client.getNickname() != "*")
+        return (_sendWelcomeBurst(client));
     return ("");
 }
 
@@ -378,7 +375,6 @@ void    Server::start() {
 
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
             Client& client = it->second;
-            cout << "client time since last ping:" << client.getTimeSinceLastPing() << '\n';
             if (client.getState() != REGISTERED || client.isPinged() || client.getTimeSinceLastPing() < PING_TIMEOUT) {
                 continue ;
             }

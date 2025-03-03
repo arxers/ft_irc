@@ -79,6 +79,8 @@ private:
     Client* _getClientByNickname(const string& nickname);
     bool    _isValidNickname(const string& nickname);
 
+    string  _sendWelcomeBurst(Client& client);
+
     // Commands
     string  _cap(const vector<string>& params);
     string  _pass(Client& client, const vector<string>& params);
