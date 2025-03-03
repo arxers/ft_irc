@@ -33,12 +33,12 @@ bool    Client::isConnected() const {
     return (this->_socketFd != -1);
 }
 
-bool    Client::isPinged() {
+bool    Client::isPinged() const {
     return (this->_pinged);
 }
 
-bool    Client::isInChannel(const string& channel) {
-    vector<string>::iterator it = std::find(this->_channels.begin(), this->_channels.begin(), channel);
+bool    Client::isInChannel(const string& channel) const {
+    vector<string>::const_iterator it = std::find(this->_channels.begin(), this->_channels.begin(), channel);
 
     if (it != this->_channels.end())
         return (true);

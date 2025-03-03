@@ -26,7 +26,6 @@ public:
     void    broadcastMessage(const string& message, const string& command, const string& sender);
     void    broadcastMessage(const string& message, const string& command, const Client& client);
 
-
     void    setKey(const string& key);
 
     const string&   getName() const;

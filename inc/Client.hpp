@@ -51,8 +51,8 @@ public:
     bool    isOperator() const ;
     bool    isAuthenticated() const;
     bool    isConnected() const;
-    bool    isInChannel(const string& channel);
-    bool    isPinged();
+    bool    isInChannel(const string& channel) const;
+    bool    isPinged() const;
 
     string&    getInputBuffer();
     string&    getOutputBuffer();
