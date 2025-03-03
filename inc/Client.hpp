@@ -34,9 +34,10 @@ private:
     string  _nickname;
     string  _username;
     string  _realname;
-    string  _password;
+
     time_t  _lastActiveTime;
     time_t  _lastPingTime;
+    bool    _pinged;
 
     vector<string>    _channels;
 
@@ -52,6 +53,7 @@ public:
     bool    isAuthenticated() const;
     bool    isConnected() const;
     bool    isInChannel(const string& channel);
+    bool    isPinged();
 
     string&    getInputBuffer();
     string&    getOutputBuffer();
@@ -71,6 +73,7 @@ public:
     void    setRealname(const string& Realname);
     void    setLastActiveTime();
     void    setLastPingTime();
+    void    setPinged(bool pinged);
 
     Client();
     Client(const Client& rhs);

@@ -55,7 +55,9 @@ void    Server::_addClient() {
         if (this->_password.empty())
             newClient.authenticate();
         this->_clients[clientFd] = newClient;
-        struct pollfd   client_pfd = {clientFd, POLLIN, 0};
+        if (this->_password.empty())
+            newClient.setState(AUTHENTICATED);
+        struct pollfd   client_pfd = {clientFd, POLLIN | POLLOUT, 0};
         this->_pollFds.push_back(client_pfd);
         cout << newClient.getIp() <<  " connected to socket FD: "
              << clientFd << '\n';
@@ -78,8 +80,8 @@ void    Server::_removeClient(int socketFd) {
 }
 
 void    Server::_handleClient(int clientFd) {
-    char        buf[MAX_MSG_LEN + 1];
-    int         receivedBytes;
+    char            buf[MAX_MSG_LEN + 1];
+    int             receivedBytes;
 
     receivedBytes = recv(clientFd, buf, sizeof(buf), 0);
     if (receivedBytes == 0) {
@@ -87,18 +89,21 @@ void    Server::_handleClient(int clientFd) {
         return ;
     }
 
-    string &inputBuffer = this->_clients[clientFd].getInputBuffer();
+    Client& client = this->_clients[clientFd];
+    client.setLastActiveTime();
+
+    string &inputBuffer = client.getInputBuffer();
     inputBuffer.append(buf, receivedBytes);
     if (inputBuffer.length() > MAX_MSG_LEN) {
         inputBuffer = inputBuffer.substr(0, MAX_MSG_LEN - 2);
         inputBuffer += "\r\n";
     }
     
-    string &outputBuffer = this->_clients[clientFd].getOutputBuffer();
+    string &outputBuffer = client.getOutputBuffer();
     while (inputBuffer.find("\r\n") != string::npos) {
         size_t  pos = inputBuffer.find("\r\n");
         string input = inputBuffer.substr(0, pos);
-        outputBuffer += _generateResponse(this->_clients[clientFd], input);
+        outputBuffer += _generateResponse(client, input);
         cout << "<" << clientFd << ": " << input << '\n';
         inputBuffer.erase(0, pos + 2);
     }
@@ -174,6 +179,7 @@ string  Server::_nick(Client& client, const vector<string>& params) {
     string reply;
     if (client.getState() == AUTHENTICATED && client.getUsername() != "") {
         client.setState(REGISTERED);
+        client.setLastPingTime();
         reply += Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to the Internet Relay Network, " + client.getNickname());
         // reply += Numerics::formatMessage(this->_name, RPL_MYINFO, , ":poopoo MYINFO poopoo 1.0 o o :@"
         // welcome burst
@@ -270,9 +276,10 @@ string Server::_ping(Client& client, const vector<string>& params) {
     return (":" + this->_name + " PONG " + this->_name + ":" + params[0] + CRLF);
 }
 string Server::_pong(Client& client, const vector<string>& params) {
-    (void)client;
     (void)params;
-    return string();
+    client.setLastPingTime();
+    client.setPinged(false);
+    return ("");
 }
 string Server::_quit(Client& client, const vector<string>& params) {
   (void)client;
@@ -296,7 +303,7 @@ string Server::_generateResponse(Client& client, Message message) {
     }
     else if (client.getState() < REGISTERED) {
         if (command != NICK && command != USER)
-            return Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, "*", "Password required");
+            return Numerics::formatMessage(this->_name, ERR_NOTREGISTERED, "*", "You have not registered");
     }
 
     switch (command) {
@@ -328,6 +335,12 @@ void    Server::_flushClientBuffer(Client& client) {
     buf.clear();
 }
 
+static string toString(int num) {
+    std::ostringstream oss;
+    oss << num;
+    return oss.str();
+}
+
 void    Server::start() {
     if (this->_name.empty())
         throw (std::runtime_error("start: Server not initialized"));
@@ -352,10 +365,31 @@ void    Server::start() {
                     _addClient();
                 else
                     _handleClient(this->_pollFds[i].fd);
+                }
+            }
+        for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+            Client& client = it->second;
+            if (client.isPinged() && client.getTimeSinceLastPing() >= PING_TIMEOUT) {
+                string& buffer = it->second.getOutputBuffer();
+                buffer += "ERROR :Closing Link: " + client.getIp() + " (Ping timeout: " + toString(PING_TIMEOUT) + "seconds)\r\n";
+                this->_disconnecting.push_back(it->first);
             }
         }
+
+        for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+            Client& client = it->second;
+            if (client.getState() != REGISTERED || client.isPinged() || client.getTimeSinceLastPing() < PING_TIMEOUT) {
+                continue ;
+            }
+            string& buffer = client.getOutputBuffer();
+            buffer += "PING :" + this->_name + CRLF;
+            client.setLastPingTime();
+            client.setPinged(true);
+        }
+
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
             _flushClientBuffer(it->second);
+
         for (vector<int>::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
             _removeClient(*it);
         this->_disconnecting.clear();

@@ -35,6 +35,10 @@ bool    Client::isConnected() const {
     return (this->_socketFd != -1);
 }
 
+bool    Client::isPinged() {
+    return (this->_pinged);
+}
+
 bool    Client::isInChannel(const string& channel) {
     vector<string>::iterator it = std::find(this->_channels.begin(), this->_channels.begin(), channel);
 
@@ -102,7 +106,11 @@ void    Client::setLastActiveTime() {
 }
 
 void    Client::setLastPingTime() {
-    this->_lastActiveTime = time(NULL);
+    this->_lastPingTime = time(NULL);
+}
+
+void    Client::setPinged(bool pinged) {
+    this->_pinged = pinged;
 }
 
 Client::Client() {}
@@ -113,7 +121,9 @@ _addr(addr),
 _state(CONNECTED),
 _op(false),
 _nickname("*"),
-_lastActiveTime(time(NULL))
+_lastActiveTime(time(NULL)),
+_lastPingTime(_lastActiveTime),
+_pinged(false)
 {}
 
 Client::Client(const Client& rhs) {
@@ -134,7 +144,9 @@ Client& Client::operator=(const Client& rhs) {
         this->_nickname = rhs._nickname;
         this->_username = rhs._username;
         this->_realname = rhs._realname;
-        this->_password = rhs._password;
+        this->_lastActiveTime = rhs._lastActiveTime;
+        this->_lastPingTime = rhs._lastPingTime;
+        this->_pinged = rhs._pinged;
         this->_channels = rhs._channels;
     }
     return (*this);
