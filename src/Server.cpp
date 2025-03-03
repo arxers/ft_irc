@@ -66,15 +66,15 @@ void    Server::_addClient() {
 
 void    Server::_removeClient(int socketFd) {
     cout << this->_clients[socketFd].getIp() << " disconnected from socket FD: " << socketFd << '\n';
-    this->_clients.erase(socketFd);
     for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
         if (it->fd == socketFd) {
             this->_pollFds.erase(it);
-            this->_clientCount--;
-            close(socketFd);
-            return ;
+            break ;
         }
     }
+    this->_clientCount--;
+    this->_clients.erase(socketFd);
+    close(socketFd);
 }
 
 void    Server::_handleClient(int clientFd) {
