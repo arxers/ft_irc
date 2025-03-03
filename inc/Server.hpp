@@ -43,6 +43,8 @@ enum e_command{
     INVITE,
     TOPIC,
     MODE,
+    PING,
+    PONG,
     QUIT,
 };
 
@@ -82,6 +84,8 @@ private:
     string  _user(Client& client, const vector<string>& params);
     string  _join(Client& client, const vector<string>& params);
     string  _privMsg(Client& client, const vector<string>& params);
+    string  _ping(Client& client, const vector<string>& params);
+    string  _pong(Client& client, const vector<string>& params); 
     string  _quit(Client& client, const vector<string>& params);
     
 public:

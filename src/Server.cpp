@@ -263,10 +263,21 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
     return ("");
 }
 
-string  Server::_quit(Client& client, const vector<string>& params) {
+string Server::_ping(Client& client, const vector<string>& params) {
+    (void)client;
+    if (params.empty())
+        return (":" + this->_name + " PONG " + this->_name + ":" + CRLF);
+    return (":" + this->_name + " PONG " + this->_name + ":" + params[0] + CRLF);
+}
+string Server::_pong(Client& client, const vector<string>& params) {
     (void)client;
     (void)params;
-    return ("");
+    return string();
+}
+string Server::_quit(Client& client, const vector<string>& params) {
+  (void)client;
+  (void)params;
+  return ("");
 }
 
 string Server::_generateResponse(Client& client, Message message) {
@@ -298,6 +309,8 @@ string Server::_generateResponse(Client& client, Message message) {
         case INVITE:    return ("INVITE\n");
         case TOPIC:     return ("TOPIC\n");
         case MODE:      return ("MODE\n");
+        case PING:      return (_ping(client, params));
+        case PONG:      return (_pong(client, params));
         case QUIT:      return (_quit(client, params));
         default: return (Numerics::formatMessage(this->_name, ERR_UNKNOWNCOMMAND, client.getNickname(), message.getCommand(), "Unknown command!"));
     }
@@ -368,6 +381,8 @@ static void initCommandMap(commandmap_t& map) {
     map["INVITE"]   = INVITE;
     map["TOPIC"]    = TOPIC;
     map["MODE"]     = MODE;
+    map["PING"]     = PING;
+    map["PONG"]     = PONG;
     map["QUIT"]     = QUIT;
 }
 
