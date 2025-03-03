@@ -138,11 +138,10 @@ string  Server::_pass(Client& client, const vector<string>& params) {
 }
 
 Client* Server::_getClientByNickname(const string& nickname) {
-    for (size_t i = 0; i < this->_clients.size(); ++i) {
-        if (this->_clients[i].getNickname() == nickname)
-            return (&this->_clients[i]);
-    }
-    return (NULL);
+    for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+        if (it->second.getNickname() == nickname)
+            return &(it->second);
+    return NULL;
 }
 
 bool    Server::_isValidNickname(const string& nickname) {
@@ -194,6 +193,7 @@ string  Server::_user(Client& client, const vector<string>& params) {
     client.setRealname(params[3]);
     if (client.getState() == AUTHENTICATED && client.getNickname() != "*") {
         client.setState(REGISTERED);
+        client.setLastPingTime();
         return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to " + this->_name + ", " + client.getNickname()));
     }
     return ("");
@@ -378,6 +378,7 @@ void    Server::start() {
 
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
             Client& client = it->second;
+            cout << "client time since last ping:" << client.getTimeSinceLastPing() << '\n';
             if (client.getState() != REGISTERED || client.isPinged() || client.getTimeSinceLastPing() < PING_TIMEOUT) {
                 continue ;
             }
