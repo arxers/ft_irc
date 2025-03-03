@@ -52,9 +52,9 @@ void    Server::_addClient() {
     if (this->_clientCount < MAX_CLIENTS) {
         this->_clientCount++;
         Client newClient(clientFd, clientAddr);
-        this->_clients[clientFd] = newClient;
         if (this->_password.empty())
             newClient.setState(AUTHENTICATED);
+        this->_clients[clientFd] = newClient;
         struct pollfd   client_pfd = {clientFd, POLLIN | POLLOUT, 0};
         this->_pollFds.push_back(client_pfd);
         cout << newClient.getIp() <<  " connected to socket FD: "
@@ -292,7 +292,8 @@ string Server::_generateResponse(Client& client, Message message) {
     if (command == CAP)
         return (_cap(params));
 
-    if (client.getState() < AUTHENTICATED) {
+    cout << client.getState() << '\n';
+    if (client.getState() == CONNECTED) {
         if (command != PASS)
             return Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, "*", "Password required");
     }
