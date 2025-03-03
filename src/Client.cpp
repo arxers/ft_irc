@@ -43,16 +43,16 @@ bool    Client::isInChannel(const string& channel) {
     return (false);
 }
 
-int Client::getSocket() const {
-    return (this->_socketFd);
-}
-
 string&    Client::getInputBuffer() {
     return (this->_inputBuffer);
 }
 
 string&    Client::getOutputBuffer() {
     return (this->_outputBuffer);
+}
+
+int Client::getSocket() const {
+    return (this->_socketFd);
 }
 
 const string  Client::getIp() const {
@@ -73,6 +73,14 @@ const vector<string>& Client::getChannels() const {
     return (this->_channels);
 }
 
+time_t  Client::getIdleTime() const{
+    return (time(NULL) - this->_lastActiveTime);
+}
+
+time_t  Client::getTimeSinceLastPing() const{
+    return (time(NULL) - this->_lastPingTime);
+}
+
 void    Client::setState(e_client_state state) {
     this->_state = state;
 }
@@ -89,6 +97,14 @@ void    Client::setRealname(const string& realname) {
     this->_realname = realname;
 }
 
+void    Client::setLastActiveTime() {
+    this->_lastActiveTime = time(NULL);
+}
+
+void    Client::setLastPingTime() {
+    this->_lastActiveTime = time(NULL);
+}
+
 Client::Client() {}
 
 Client::Client(int socketFd, struct sockaddr_in addr) :
@@ -96,7 +112,8 @@ _socketFd(socketFd),
 _addr(addr),
 _state(CONNECTED),
 _op(false),
-_nickname("*")
+_nickname("*"),
+_lastActiveTime(time(NULL))
 {}
 
 Client::Client(const Client& rhs) {

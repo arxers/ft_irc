@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ctime>
 
 #include "Channel.hpp"
 
@@ -34,6 +35,8 @@ private:
     string  _username;
     string  _realname;
     string  _password;
+    time_t  _lastActiveTime;
+    time_t  _lastPingTime;
 
     vector<string>    _channels;
 
@@ -49,20 +52,25 @@ public:
     bool    isAuthenticated() const;
     bool    isConnected() const;
     bool    isInChannel(const string& channel);
-    int     getSocket() const;
+
     string&    getInputBuffer();
     string&    getOutputBuffer();
+    
+    int             getSocket() const;
     const string    getIp() const;
     e_client_state  getState() const;
     const string&   getNickname() const;
     const string&   getUsername() const;
     const vector<string>& getChannels() const;
+    time_t  getIdleTime() const;
+    time_t  getTimeSinceLastPing() const;
 
     void    setState(e_client_state state);
     void    setNickname(const string& nickname);
     void    setUsername(const string& Username);
     void    setRealname(const string& Realname);
-
+    void    setLastActiveTime();
+    void    setLastPingTime();
 
     Client();
     Client(const Client& rhs);
