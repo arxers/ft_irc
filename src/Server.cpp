@@ -433,6 +433,8 @@ Server& Server::operator=(const Server&) { return (*this); }
 Server::~Server() {
     close(this->_listeningSocket);
     for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        string  message("ERROR :Closing Link: " + it->second.getIp() + " (Server shutting down)\r\n");
+        send(it->first, message.c_str(), message.size(), 0);
         close(it->first);
     }
 }
