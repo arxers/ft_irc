@@ -22,9 +22,7 @@
 
 #define MAX_CLIENTS     100
 #define MAX_MSG_LEN     512
-#ifndef PING_TIMEOUT
-    #define PING_TIMEOUT    10
-#endif
+#define PING_TIMEOUT    90
 
 using std::map;
 using std::string;
