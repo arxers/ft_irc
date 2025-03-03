@@ -9,12 +9,14 @@ void    Client::addChannel(const string& channel) {
     this->_channels.push_back(channel);
 }
 void    Client::removeChannel(const string& channel) {
-    (void)channel;
+    vector<string>::iterator it = std::find(this->_channels.begin(), this->_channels.end(), channel);
+    if (it != this->_channels.end())
+        this->_channels.erase(it);
 }
 
 void    Client::sendMessage(const string& message, const string& sender) {
     string formattedMessage = ":" + sender + " PRIVMSG " + this->_nickname + " :" + message + "\r\n";
-        send(this->_socketFd, formattedMessage.c_str(), formattedMessage.size(), MSG_NOSIGNAL);
+    this->_outputBuffer += formattedMessage;
 }
 
 // Predicates, getters, setters

@@ -40,6 +40,7 @@ enum e_command{
     NICK,
     USER,
     JOIN,
+    PART,
     PRIVMSG,
     KICK,
     INVITE,
@@ -87,6 +88,7 @@ private:
     string  _nick(Client& client, const vector<string>& params);
     string  _user(Client& client, const vector<string>& params);
     string  _join(Client& client, const vector<string>& params);
+    string  _part(Client& client, const vector<string>& params);
     string  _privMsg(Client& client, const vector<string>& params);
     string  _ping(Client& client, const vector<string>& params);
     string  _pong(Client& client, const vector<string>& params); 

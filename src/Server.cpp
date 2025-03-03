@@ -238,6 +238,35 @@ string  Server::_join(Client& client, const vector<string>& params) {
     return (reply);
 }
 
+string  Server::_part(Client& client, const vector<string>& params) {
+    if (params.size() < 1)
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+
+    std::istringstream  issChannels(params[0]);
+    string  channelStr;
+    vector<string> partingChannels;
+    while (std::getline(issChannels, channelStr, ','))
+        partingChannels.push_back(channelStr);
+    
+    string  message = (params.size() > 1 ? params[1] : client.getNickname());
+    string  reply;
+    for (vector<string>::iterator channelName = partingChannels.begin(); channelName != partingChannels.end(); ++channelName) {
+        vector<string> clientChannels = client.getChannels();
+        if (this->_channels.find(*channelName) == this->_channels.end()) {
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), *channelName, "No such channel");
+            continue ;
+        }
+        if (!client.isInChannel(*channelName)) {
+            reply += Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), *channelName, "You're not on that channel");
+            continue ;
+        }
+        Channel&    channel = this->_channels[*channelName];
+        channel.broadcastMessage(message, "PART", client.getNickname());
+        channel.removeClient(client);
+    }
+    return (reply);
+}
+
 string  Server::_privMsg(Client& client, const vector<string>& params) {
     if (params.empty())
     return (Numerics::formatMessage(this->_name, ERR_NORECIPIENT, client.getNickname(), "No recipient given (PRIVMSG)"));
@@ -251,7 +280,7 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
             return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), "No such nick/channel"));
         if (!client.isInChannel(params[0]))
             return (Numerics::formatMessage(this->_name, ERR_CANNOTSENDTOCHAN, client.getNickname(), params[0], "Cannot send to channel"));
-        it->second.broadcastMessage(params[1], client);
+        it->second.broadcastMessage(params[1], "PRIVMSG", client);
         return ("");
     }
 
@@ -292,7 +321,6 @@ string Server::_generateResponse(Client& client, Message message) {
     if (command == CAP)
         return (_cap(params));
 
-    cout << client.getState() << '\n';
     if (client.getState() == CONNECTED) {
         if (command != PASS)
             return Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, "*", "Password required");
@@ -306,6 +334,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case PASS:      return (_pass(client, params));
         case NICK:      return (_nick(client, params));
         case USER:      return (_user(client, params));
+        case PART:      return (_part(client, params));
         case JOIN:      return (_join(client, params));
         case PRIVMSG:   return (_privMsg(client, params));
         case KICK:      return ("KICK\n");
@@ -407,6 +436,7 @@ static void initCommandMap(commandmap_t& map) {
     map["NICK"]     = NICK;
     map["USER"]     = USER;
     map["JOIN"]     = JOIN;
+    map["PART"]     = PART;
     map["PRIVMSG"]  = PRIVMSG;
     map["KICK"]     = KICK;
     map["INVITE"]   = INVITE;
@@ -433,7 +463,7 @@ Server::~Server() {
     close(this->_listeningSocket);
     for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         string  message("ERROR :Closing Link: " + it->second.getIp() + " (Server shutting down)\r\n");
-        send(it->first, message.c_str(), message.size(), 0);
+        send(it->first, message.c_str(), message.size(), MSG_NOSIGNAL);
         close(it->first);
     }
 }
