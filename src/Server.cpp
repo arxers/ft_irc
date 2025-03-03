@@ -391,6 +391,7 @@ void    Server::start() {
             _removeClient(*it);
         this->_disconnecting.clear();
     }
+    cout << "Server shutting down...\n";
 }
 
 static bool isValidPort(int n) {
