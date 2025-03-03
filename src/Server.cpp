@@ -267,8 +267,8 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
 string Server::_ping(Client& client, const vector<string>& params) {
     (void)client;
     if (params.empty())
-        return (":" + this->_name + " PONG " + this->_name + ":" + CRLF);
-    return (":" + this->_name + " PONG " + this->_name + ":" + params[0] + CRLF);
+        return (":" + this->_name + " PONG " + this->_name + " :" + CRLF);
+    return (":" + this->_name + " PONG " + this->_name + " :" + params[0] + CRLF);
 }
 string Server::_pong(Client& client, const vector<string>& params) {
     (void)params;
