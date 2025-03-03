@@ -262,6 +262,60 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
     targetClient->sendMessage(params[1], client.getNickname());
     return ("");
 }
+/*
+join #minishell
+:jerlim!~j@203.149.201.178 JOIN #minishell
+
+Client OP:
+KICK #minishell whoarr
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
+
+Client User:
+join #minishell
+:whoarr!~a@203.149.201.178 JOIN #minishell
+:platinum.libera.chat 353 whoarr @ #minishell :whoarr @jerlim
+:platinum.libera.chat 366 whoarr #minishell :End of /NAMES list.
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
+
+KICK #minishell whoarr :Memleaks!
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- Operator
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- User
+
+Server broadcasts the message to the clients in the room
+
+ */
+
+vector< pair<string, string> > mapPairs(const vector<string>& params) {
+    std::istringstream  issKeys(params[0]);
+    std::istringstream  issValues(params[1]);
+    string  keyStr, valueStr;
+    vector< pair<string, string> > pairMap;
+    while (std::getline(issKeys, keyStr, ',')) {
+        pairMap.push_back(std::make_pair(keyStr, valueStr));
+    }
+    return pairMap;
+}
+
+string  Server::_kick(Client& client, const vector<string>& params) {
+    if (params.size() < 2)
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+    
+    // make channel map from input params
+    // Map channel name to nickname
+
+
+    // For channel in list of channels
+
+        // Check if client is op in the desired channel?
+
+            // forcefully part target user
+
+
+        // :jerlim!~j@203.149.201.178 KICK #hello jerlim :jerlim
+    // <prefix><~ indicates non identified user by ident><username>@<ip_addr> KICK <channel> <nick> :<nick of kicker | kick msg>
+    //cout << "KICK" + " #channelA, #channelB " + "nickname"
+    
+}
 
 string Server::_ping(Client& client, const vector<string>& params) {
     (void)client;
@@ -305,7 +359,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case USER:      return (_user(client, params));
         case JOIN:      return (_join(client, params));
         case PRIVMSG:   return (_privMsg(client, params));
-        case KICK:      return ("KICK\n");
+        case KICK:      return (_kick(client, params));
         case INVITE:    return ("INVITE\n");
         case TOPIC:     return ("TOPIC\n");
         case MODE:      return ("MODE\n");
