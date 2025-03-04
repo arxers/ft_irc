@@ -79,6 +79,7 @@ private:
     void    _flushClientBuffer(Client& client);
     Client* _getClientByNickname(const string& nickname);
     bool    _isValidNickname(const string& nickname);
+    bool    _isChannelActive(const string& channel);
 
     string  _sendWelcomeBurst(Client& client);
 

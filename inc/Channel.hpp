@@ -18,7 +18,7 @@ private:
     string              _key;           // k
 
 public:
-    bool    isClientOp(Client* client) const;
+    bool    isClientOp(Client& client) const;
 
     int     addClient(Client& client, const string& key);
     void    removeClient(Client& client);

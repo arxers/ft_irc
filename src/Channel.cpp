@@ -12,8 +12,8 @@
 
 
 // public:
-bool    Channel::isClientOp(Client* client) const {
-    std::map<int, Client*>::const_iterator it = _clients.find(client->getSocket());
+bool    Channel::isClientOp(Client& client) const {
+    std::map<int, Client*>::const_iterator it = _clients.find(client.getSocket());
     if (it != _clients.end())
         return (true);
     return (false);
