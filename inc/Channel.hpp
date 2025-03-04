@@ -18,10 +18,10 @@ private:
     string              _key;           // k
 
 public:
-    int     addClient(Client* client, const string& key);
-    void    removeClient(Client client);
-    void    addOperator(Client client);
-    void    removeOperator(Client client);
+    int     addClient(Client& client, const string& key);
+    void    removeClient(Client& client);
+    void    addOperator(Client& client);
+    void    removeOperator(Client& client);
 
     void    broadcastMessage(const string& message, const string& command, const string& sender);
     void    broadcastMessage(const string& message, const string& command, const Client& client);

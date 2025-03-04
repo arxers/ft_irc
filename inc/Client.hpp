@@ -39,11 +39,12 @@ private:
     time_t  _lastPingTime;
     bool    _pinged;
 
-    vector<string>    _channels;
+    // vector<string>    _channels;
+    map<string, Channel*>   _channels;
 
 
 public:
-    void    addChannel(const string& channel);
+    void    addChannel(Channel& channel);
     void    removeChannel(const string& channel);
     void    sendMessage(const string& message, const string& sender);
 
@@ -62,7 +63,6 @@ public:
     e_client_state  getState() const;
     const string&   getNickname() const;
     const string&   getUsername() const;
-    const vector<string>& getChannels() const;
     time_t  getIdleTime() const;
     time_t  getTimeSinceLastPing() const;
 

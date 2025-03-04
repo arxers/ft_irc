@@ -5,13 +5,13 @@
 
 // public:
 
-void    Client::addChannel(const string& channel) {
-    this->_channels.push_back(channel);
+void    Client::addChannel(Channel& channel) {
+    string channelName = channel.getName();
+    this->_channels[channelName] = &channel;
 }
+
 void    Client::removeChannel(const string& channel) {
-    vector<string>::iterator it = std::find(this->_channels.begin(), this->_channels.end(), channel);
-    if (it != this->_channels.end())
-        this->_channels.erase(it);
+    this->_channels.erase(channel);
 }
 
 void    Client::sendMessage(const string& message, const string& sender) {
@@ -38,8 +38,7 @@ bool    Client::isPinged() const {
 }
 
 bool    Client::isInChannel(const string& channel) const {
-    vector<string>::const_iterator it = std::find(this->_channels.begin(), this->_channels.begin(), channel);
-
+    map<string, Channel*>::const_iterator it = this->_channels.find(channel);
     if (it != this->_channels.end())
         return (true);
     return (false);
@@ -70,9 +69,6 @@ const string&  Client::getNickname() const {
 }
 const string&  Client::getUsername() const {
     return (this->_username);
-}
-const vector<string>& Client::getChannels() const {
-    return (this->_channels);
 }
 
 time_t  Client::getIdleTime() const{

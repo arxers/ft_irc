@@ -12,21 +12,21 @@
 
 
 // public:
-int    Channel::addClient(Client* client, const string& key) {
+int    Channel::addClient(Client& client, const string& key) {
     if (!this->_key.empty() && key != this->_key)
         return (-1);
-    this->_clients[client->getSocket()] = client;
-    client->addChannel(this->_name);
+    this->_clients[client.getSocket()] = &client;
+    client.addChannel(*this);
     return (0);
 }
-void    Channel::removeClient(Client client) {
+void    Channel::removeClient(Client& client) {
     client.removeChannel(this->_name);
     this->_clients.erase(client.getSocket());
 }
-void    Channel::addOperator(Client client) {
+void    Channel::addOperator(Client& client) {
     this->_operators[client.getSocket()] = &client;
 }
-void    Channel::removeOperator(Client client) {
+void    Channel::removeOperator(Client& client) {
     this->_clients.erase(client.getSocket());
 }
 
@@ -67,8 +67,8 @@ Channel::Channel() {}
 
 Channel::Channel(const string& channelName, Client& client) :
 _name(channelName), _inviteOnly(false), _topicLock(false), _userLimit(-1) {
-    client.addChannel(channelName);
-    addClient(&client, "");
+    client.addChannel(*this);
+    addClient(client, "");
     addOperator(client);
 }
 
