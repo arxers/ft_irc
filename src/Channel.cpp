@@ -12,6 +12,13 @@
 
 
 // public:
+bool    Channel::isClientOp(Client* client) const {
+    std::map<int, Client*>::const_iterator it = _clients.find(client->getSocket());
+    if (it != _clients.end())
+        return (true);
+    return (false);
+}
+
 int    Channel::addClient(Client* client, const string& key) {
     if (!this->_key.empty() && key != this->_key)
         return (-1);

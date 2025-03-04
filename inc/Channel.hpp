@@ -18,6 +18,9 @@ private:
     string              _key;           // k
 
 public:
+    // Why not reference here? because client might not exist?
+    bool    isClientOp(Client* client) const;
+
     int     addClient(Client* client, const string& key);
     void    removeClient(Client client);
     void    addOperator(Client client);

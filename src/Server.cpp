@@ -332,7 +332,7 @@ StringPairs stringPairs(const string& str1, const string& str2) {
 
 string  Server::_kick(Client& client, const vector<string>& params) {
     if (params.size() < 2)
-        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "KICk", "Not enough parameters"));
     StringPairs channelUserPairs = stringPairs(params[0], params[1]);
     // make channel map from input params
     // Map channel name to nickname
@@ -344,19 +344,29 @@ string  Server::_kick(Client& client, const vector<string>& params) {
             // valid channel?
             channelmap_t::iterator itChan = this->_channels.find(params[0]);
             if (itChan == this->_channels.end())
-                return (Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), "No such channel"));
+                return (Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), it->first, "No such channel"));
             if (!client.isInChannel(it->first))
                 return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel"));
-
             // valid target user?
             Client* targetClient = this->_getClientByNickname(it->second);
             if (targetClient == NULL)
                 return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, it->second, "No such nick/channel"));
-            //itChan->second.broadcastMessage(Numerics::formatMessage(this->_name, ), client);
-            cout << "KICK" + it->first + " " + it->second + ":" + client.getNickname();
+            // Is user an operator in this channel?
+            if (!itChan->second.isClientOp(&client))
+                return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, it->first, "You're not channel operator"));
+            // Message is either person kicked or reason
+            Channel& channel = itChan->second;
+            channel.broadcastMessage(it->second, "KICK", it->second);
+            //channel.removeClient(targetClient);
             return ("");
         }
-
+        // <kicker>
+        // <prefix><~><username>@<ip_addr>     KICK <channel> <nick>
+        // libera
+        // :usernick!~usernick@203.149.201.178 KICK #heyminishell liberaTest :liberaTest           
+        
+        // ours
+        // :usernick                           KICK #test123                 :usernick
         // Check if client is op in the desired channel?
 
             // forcefully part target user

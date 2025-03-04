@@ -58,6 +58,12 @@ tmux select-pane -t 2
 tmux send-keys C-l
 tmux set-window-option -t $SESSION synchronize-panes on
 
+sleep 1
+tmux select-pane -t 1
+tmux send-keys -t $SESSION "JOIN #testChanA" C-m
+tmux send-keys -t $SESSION "JOIN #testChanA" C-m
+
 # Attach to the session
 tmux select-pane -t 0
 tmux attach -t $SESSION
+
