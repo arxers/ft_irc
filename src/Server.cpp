@@ -1,5 +1,11 @@
 #include "../inc/Server.hpp"
 
+static string toString(int num) {
+    std::ostringstream oss;
+    oss << num;
+    return oss.str();
+}
+
 int Server::_createSocket() {
     struct addrinfo hints = {}, *res, *p;
     hints.ai_family = AF_UNSPEC;
@@ -292,7 +298,7 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
     // else if target is a client
     Client* targetClient = _getClientByNickname(params[0]);
     if (!targetClient)
-        return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), "No such nick/channel"));
+        return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), params[0], "No such nick/channel"));
 
     targetClient->sendMessage(params[1], client.getNickname());
     return ("");
@@ -395,6 +401,37 @@ string  Server::_kick(Client& client, const vector<string>& params) {
     //cout << "KICK" + " #channelA, #channelB " + "nickname"
     
     
+string  Server::_mode(Client& client, const vector<string>& params) {
+    if (params.size() < 1)
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+
+    if (!_isChannelActive(params[0]))
+        return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), params[0], "No such nick/channel"));
+    
+    if (!client.isInChannel(params[0]))
+        Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel");
+    
+    Channel& channel = this->_channels[params[0]];
+
+    if (params.size() == 1) {
+        string  mode;
+        if (channel.isInviteOnly())
+            mode += "i";
+        if (channel.isTopicLocked())
+            mode += "t";
+        if (channel.hasChannelKey())
+            mode += "k";
+        if (channel.isClientOp(client))
+            mode += "o";
+        if (channel.getUserLimit() > 0)
+            mode += "l " + toString(channel.getUserLimit());
+        if (!mode.empty())
+            mode = "+" + mode;
+        return (Numerics::formatMessage(this->_name, RPL_CHANNELMODEIS, channel.getName(), mode));
+    }
+
+    return ("");
+}
 
 string Server::_ping(Client& client, const vector<string>& params) {
     (void)client;
@@ -420,17 +457,19 @@ string Server::_generateResponse(Client& client, Message message) {
     string commandUpper = strToUpper(message.getCommand());
     commandmap_t::iterator   it = this->_commands.find(commandUpper);
 
-    string reply;
+    if (it == this->_commands.end())
+        return (Numerics::formatMessage(this->_name, ERR_UNKNOWNCOMMAND, client.getNickname(), message.getCommand(), "Unknown command!")); 
+
     e_command command = it->second;
     const vector<string>&   params = message.getParams();
+
     if (command == CAP)
         return (_cap(params));
 
     if (client.getState() == CONNECTED) {
         if (command != PASS)
             return Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, "*", "Password required");
-    }
-    else if (client.getState() < REGISTERED) {
+    } else if (client.getState() < REGISTERED) {
         if (command != NICK && command != USER)
             return Numerics::formatMessage(this->_name, ERR_NOTREGISTERED, "*", "You have not registered");
     }
@@ -445,7 +484,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case KICK:      return (_kick(client, params));
         case INVITE:    return ("INVITE\n");
         case TOPIC:     return ("TOPIC\n");
-        case MODE:      return ("MODE\n");
+        case MODE:      return (_mode(client, params));
         case PING:      return (_ping(client, params));
         case PONG:      return (_pong(client, params));
         case QUIT:      return (_quit(client, params));
@@ -463,12 +502,6 @@ void    Server::_flushClientBuffer(Client& client) {
     cout << ">" << client.getSocket() << ": " << buf;
     send(fd, buf.c_str(), size, MSG_NOSIGNAL);
     buf.clear();
-}
-
-static string toString(int num) {
-    std::ostringstream oss;
-    oss << num;
-    return oss.str();
 }
 
 void    Server::start() {
