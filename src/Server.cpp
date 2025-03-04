@@ -65,8 +65,7 @@ void    Server::_addClient() {
 }
 
 void    Server::_removeClient(int socketFd) {
-    
-
+    cout << this->_clients[socketFd].getIp() << " disconnected from socket FD: " << socketFd << '\n';
     for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
         if (it->fd == socketFd) {
             this->_pollFds.erase(it);
@@ -76,7 +75,6 @@ void    Server::_removeClient(int socketFd) {
     this->_clientCount--;
     this->_clients.erase(socketFd);
     close(socketFd);
-    cout << this->_clients[socketFd].getIp() << " disconnected from socket FD: " << socketFd << '\n';
 }
 
 void    Server::_handleClient(int clientFd) {
@@ -307,10 +305,11 @@ string Server::_pong(Client& client, const vector<string>& params) {
     return ("");
 }
 string Server::_quit(Client& client, const vector<string>& params) {
-  (void)client;
-  (void)params;
+    (void)client;
+    (void)params;
 
-  return ("");
+    this->_disconnecting.push_back(client.getSocket());
+    return ("ERROR :Closing Link: " + client.getIp() + " (Client Quit)\r\n");
 }
 
 string Server::_generateResponse(Client& client, Message message) {
