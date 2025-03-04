@@ -405,6 +405,9 @@ string  Server::_mode(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
 
+    if (params[0][0] != '#')
+        return (Numerics::formatMessage(this->_name, ERR_UMODEUNKNOWNFLAG, client.getNickname(), "User modes are not supported"));
+
     if (!_isChannelActive(params[0]))
         return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), params[0], "No such nick/channel"));
     
@@ -428,6 +431,24 @@ string  Server::_mode(Client& client, const vector<string>& params) {
         if (!mode.empty())
             mode = "+" + mode;
         return (Numerics::formatMessage(this->_name, RPL_CHANNELMODEIS, channel.getName(), mode));
+    }
+
+    vector<string>  modes, modeParams;
+    for (size_t  i = 1; i < params.size(); ++i) {
+        string  mode = params[i];
+        if (mode[0] == '+') {
+            if (mode == "+k" || mode == "+o" || mode == "+l") {
+                if (i + 1 < params.size() && params[i + 1][0] != '+' && params[i + 1][0] != '-') {
+                    modes.push_back(mode);
+                    modeParams.push_back(params[++i]);
+                }
+            } else
+                modes.push_back(mode);
+        } else if (mode[0] == '-') {
+            modes.push_back(mode);
+        } else {
+            ; // invalid mode
+        }
     }
 
     return ("");
