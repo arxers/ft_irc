@@ -20,6 +20,7 @@ int    Channel::addClient(Client* client, const string& key) {
     return (0);
 }
 void    Channel::removeClient(Client client) {
+    client.removeChannel(this->_name);
     this->_clients.erase(client.getSocket());
 }
 void    Channel::addOperator(Client client) {
@@ -29,11 +30,23 @@ void    Channel::removeOperator(Client client) {
     this->_clients.erase(client.getSocket());
 }
 
-void    Channel::broadcastMessage(const string& message, Client client) {
-    for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        if (it->first != client.getSocket()) {
-            string formattedMessage = ":" + client.getNickname() + " PRIVMSG " + this->_name + " :" + message + "\r\n";
-            send(it->first, formattedMessage.c_str(), formattedMessage.size(), MSG_NOSIGNAL);
+void    Channel::broadcastMessage(const string& message, const string& command, const string& sender) {
+    for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        string  formattedMessage = ":" + sender + " " + command + " " + this->_name + " :" + message + "\r\n";
+        string& clientBuffer = it->second->getOutputBuffer();
+        clientBuffer += formattedMessage;
+    }
+}
+
+// :jaslim!~j@203.149.201.178 PART #testtestaaa
+// :jjjj!~j@203.149.201.178 PART #test123123 :param
+
+void    Channel::broadcastMessage(const string& message, const string& command, const Client& sender) {
+    for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        if (it->first != sender.getSocket()) {
+            string formattedMessage = ":" + sender.getNickname() + " " + command + " " + this->_name + " :" + message + "\r\n";
+            string& clientBuffer = it->second->getOutputBuffer();
+            clientBuffer += formattedMessage;
         }
     }
 }

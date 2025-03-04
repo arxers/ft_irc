@@ -13,14 +13,16 @@
 #include <netinet/in.h>
 #include <poll.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Message.hpp"
 #include "Numerics.hpp"
 
-#define MAX_CLIENTS 100
-#define MAX_MSG_LEN 512
+#define MAX_CLIENTS     100
+#define MAX_MSG_LEN     512
+#define PING_TIMEOUT    90
 
 using std::map;
 using std::string;
@@ -38,6 +40,7 @@ enum e_command{
     NICK,
     USER,
     JOIN,
+    PART,
     PRIVMSG,
     KICK,
     INVITE,
@@ -76,6 +79,8 @@ private:
     void    _flushClientBuffer(Client& client);
     Client* _getClientByNickname(const string& nickname);
     bool    _isValidNickname(const string& nickname);
+
+    string  _sendWelcomeBurst(Client& client);
 
     // Commands
     string  _cap(const vector<string>& params);

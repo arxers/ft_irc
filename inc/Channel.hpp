@@ -23,8 +23,8 @@ public:
     void    addOperator(Client client);
     void    removeOperator(Client client);
 
-    void    broadcastMessage(const string& message, Client client);
-
+    void    broadcastMessage(const string& message, const string& command, const string& sender);
+    void    broadcastMessage(const string& message, const string& command, const Client& client);
 
     void    setKey(const string& key);
 
