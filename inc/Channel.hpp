@@ -18,7 +18,11 @@ private:
     string              _key;           // k
 
 public:
+    bool    isInviteOnly() const;
+    bool    isTopicLocked() const;
     bool    isClientOp(Client& client) const;
+    bool    hasChannelKey() const;
+    bool    hasUserLimit() const;
 
     int     addClient(Client& client, const string& key);
     void    removeClient(Client& client);
@@ -32,6 +36,8 @@ public:
 
     const string&   getName() const;
     const string&   getKey() const;
+    int             getUserLimit() const;
+
 
     Channel();
     Channel(const string& channelName, Client& client);

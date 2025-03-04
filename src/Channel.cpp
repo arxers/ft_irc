@@ -12,11 +12,26 @@
 
 
 // public:
+
+bool    Channel::isInviteOnly() const {
+    return (this->_inviteOnly);
+}
+
+bool    Channel::isTopicLocked() const {
+    return (this->_topicLock);
+}
+
 bool    Channel::isClientOp(Client& client) const {
-    std::map<int, Client*>::const_iterator it = _clients.find(client.getSocket());
-    if (it != _clients.end())
-        return (true);
-    return (false);
+    std::map<int, Client*>::const_iterator it = this->_operators.find(client.getSocket());
+    return (it != this->_operators.end());
+}
+
+bool    Channel::hasChannelKey() const {
+    return (!this->_key.empty());
+}
+
+bool    Channel::hasUserLimit() const {
+    return (this->_userLimit > 0);
 }
 
 int    Channel::addClient(Client& client, const string& key) {
@@ -70,10 +85,14 @@ const string& Channel::getKey() const{
     return (this->_key);
 }
 
+int Channel::getUserLimit() const {
+    return (this->_userLimit);
+}
+
 Channel::Channel() {}
 
 Channel::Channel(const string& channelName, Client& client) :
-_name(channelName), _inviteOnly(false), _topicLock(false), _userLimit(-1) {
+_name(channelName), _inviteOnly(false), _topicLock(false), _userLimit(0) {
     client.addChannel(*this);
     addClient(client, "");
     addOperator(client);
