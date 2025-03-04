@@ -83,6 +83,7 @@ private:
     string  _nick(Client& client, const vector<string>& params);
     string  _user(Client& client, const vector<string>& params);
     string  _join(Client& client, const vector<string>& params);
+    string  _part(Client& client, const vector<string>& params);
     string  _privMsg(Client& client, const vector<string>& params);
     string  _kick(Client& client, const vector<string>& params);    
     string  _ping(Client& client, const vector<string>& params);

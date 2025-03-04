@@ -206,7 +206,7 @@ bool    isValidChannelName(const std::string& channel) {
 }
 
 string  Server::_join(Client& client, const vector<string>& params) {
-    if (params.size() < 1)
+    if (params.empty() || params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
 
     // make channel map from input params
@@ -235,6 +235,15 @@ string  Server::_join(Client& client, const vector<string>& params) {
         }
     }
     return (reply);
+}
+
+
+// Parameters: <channel> *( "," <channel> ) [ <Part Message> ]
+string  Server::_part(Client& client, const vector<string>& params) {
+    if (params.size() < 1)
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+    std::istringstream issChannels(params[0]);
+    return ("");
 }
 
 string  Server::_privMsg(Client& client, const vector<string>& params) {
@@ -285,26 +294,47 @@ Server broadcasts the message to the clients in the room
 
  */
 
-vector< pair<string, string> > mapPairs(const vector<string>& params) {
-    std::istringstream  issKeys(params[0]);
-    std::istringstream  issValues(params[1]);
+typedef vector< pair<string, string> > StringPairs;
+
+StringPairs stringPairs(const string& str1, const string& str2) {
+    std::istringstream  issKeys(str1);
+    std::istringstream  issValues(str2);
     string  keyStr, valueStr;
-    vector< pair<string, string> > pairMap;
+    vector< pair<string, string> > sp;
     while (std::getline(issKeys, keyStr, ',')) {
-        pairMap.push_back(std::make_pair(keyStr, valueStr));
+        if (!std::getline(issValues, valueStr, ','))
+            valueStr = "";
+        sp.push_back(std::make_pair(keyStr, valueStr));
     }
-    return pairMap;
+    return sp;
 }
 
 string  Server::_kick(Client& client, const vector<string>& params) {
-    if (params.empty() || params.size() < 2)
+    if (params.size() < 2)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
-    
+    StringPairs channelUserPairs = stringPairs(params[0], params[1]);
     // make channel map from input params
     // Map channel name to nickname
 
 
     // For channel in list of channels
+    for (StringPairs::iterator it = channelUserPairs.begin(); it != channelUserPairs.end(); ++it) {
+        if (it->first[0] == '#') { // if target is a channel
+            // valid channel?
+            channelmap_t::iterator itChan = this->_channels.find(params[0]);
+            if (itChan == this->_channels.end())
+                return (Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), "No such channel"));
+            if (!client.isInChannel(it->first))
+                return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel"));
+
+            // valid target user?
+            Client* targetClient = this->_getClientByNickname(it->second);
+            if (targetClient == NULL)
+                return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, it->second, "No such nick/channel"));
+            //itChan->second.broadcastMessage(Numerics::formatMessage(this->_name, ), client);
+            cout << "KICK" + it->first + " " + it->second + ":" + client.getNickname();
+            return ("");
+        }
 
         // Check if client is op in the desired channel?
 
@@ -315,6 +345,8 @@ string  Server::_kick(Client& client, const vector<string>& params) {
     // <prefix><~ indicates non identified user by ident><username>@<ip_addr> KICK <channel> <nick> :<nick of kicker | kick msg>
     //cout << "KICK" + " #channelA, #channelB " + "nickname"
     
+    }
+    return ("");
 }
 
 string Server::_ping(Client& client, const vector<string>& params) {
