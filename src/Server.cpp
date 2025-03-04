@@ -65,7 +65,8 @@ void    Server::_addClient() {
 }
 
 void    Server::_removeClient(int socketFd) {
-    cout << this->_clients[socketFd].getIp() << " disconnected from socket FD: " << socketFd << '\n';
+    
+
     for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
         if (it->fd == socketFd) {
             this->_pollFds.erase(it);
@@ -75,6 +76,7 @@ void    Server::_removeClient(int socketFd) {
     this->_clientCount--;
     this->_clients.erase(socketFd);
     close(socketFd);
+    cout << this->_clients[socketFd].getIp() << " disconnected from socket FD: " << socketFd << '\n';
 }
 
 void    Server::_handleClient(int clientFd) {
@@ -228,7 +230,7 @@ string  Server::_join(Client& client, const vector<string>& params) {
             continue ;
         } //if channel already exists
         if (this->_channels.find(channelKeyMap[i].first) != this->_channels.end()) {
-            if (this->_channels[channelKeyMap[i].first].addClient(&client, channelKeyMap[i].second) == -1)
+            if (this->_channels[channelKeyMap[i].first].addClient(client, channelKeyMap[i].second) == -1)
             reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+k)");
         } else { //else create channel
             Channel newChannel(channelKeyMap[i].first, client);
@@ -251,7 +253,6 @@ string  Server::_part(Client& client, const vector<string>& params) {
     string  message = (params.size() > 1 ? params[1] : client.getNickname());
     string  reply;
     for (vector<string>::iterator channelName = partingChannels.begin(); channelName != partingChannels.end(); ++channelName) {
-        vector<string> clientChannels = client.getChannels();
         if (this->_channels.find(*channelName) == this->_channels.end()) {
             reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), *channelName, "No such channel");
             continue ;
@@ -260,7 +261,7 @@ string  Server::_part(Client& client, const vector<string>& params) {
             reply += Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), *channelName, "You're not on that channel");
             continue ;
         }
-        Channel&    channel = this->_channels[*channelName];
+        Channel&    channel = this->_channels.find(*channelName)->second;
         channel.broadcastMessage(message, "PART", client.getNickname());
         channel.removeClient(client);
     }
@@ -395,6 +396,7 @@ string Server::_pong(Client& client, const vector<string>& params) {
 string Server::_quit(Client& client, const vector<string>& params) {
   (void)client;
   (void)params;
+
   return ("");
 }
 
