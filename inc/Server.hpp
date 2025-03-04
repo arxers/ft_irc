@@ -61,7 +61,7 @@ private:
     string  _port;
     string  _password;
 
-    int _clientCount;
+    int                     _clientCount;
     vector<pollfd>          _pollFds;
     vector<int>             _disconnecting;
     map<int, Client>        _clients;

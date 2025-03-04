@@ -168,4 +168,8 @@ public:
         oss << std::setw(3) << std::setfill('0') <<  num;
         return (":" + server + " " + oss.str() + " " + nick + " " + param + " :" + message  + CRLF);
     }
+
+    static string   formatDisconnectMessage(const Client& client, const string& message) {
+        return ("ERROR :Closing Link: " + client.getIp() + " (" + message + ")\r\n");
+    }
 };

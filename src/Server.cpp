@@ -131,7 +131,7 @@ string  Server::_pass(Client& client, const vector<string>& params) {
     this->_disconnecting.push_back(client.getSocket());
     string  reply;
     reply += Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, client.getNickname(), "Password incorrect");
-    reply += "ERROR :Closing Link: " + client.getIp() + " (Incorrect Password)\r\n";
+    reply += Numerics::formatDisconnectMessage(client, "Incorrect Password");
     return (reply);
 }
 
@@ -309,7 +309,7 @@ string Server::_quit(Client& client, const vector<string>& params) {
     (void)params;
 
     this->_disconnecting.push_back(client.getSocket());
-    return ("ERROR :Closing Link: " + client.getIp() + " (Client Quit)\r\n");
+    return (Numerics::formatDisconnectMessage(client, "Client Quit"));
 }
 
 string Server::_generateResponse(Client& client, Message message) {
@@ -397,7 +397,7 @@ void    Server::start() {
             Client& client = it->second;
             if (client.isPinged() && client.getTimeSinceLastPing() >= PING_TIMEOUT) {
                 string& buffer = it->second.getOutputBuffer();
-                buffer += "ERROR :Closing Link: " + client.getIp() + " (Ping timeout: " + toString(PING_TIMEOUT) + "seconds)\r\n";
+                buffer += Numerics::formatDisconnectMessage(client, "Ping timeout: " + toString(PING_TIMEOUT) + "seconds");
                 this->_disconnecting.push_back(it->first);
             }
         }
@@ -457,13 +457,13 @@ void    Server::init(string name, string port, string password) {
     initCommandMap(this->_commands);
 }
 
-Server::Server() {}
+Server::Server() : _listeningSocket(-1), _clientCount(0) {}
 Server::Server(const Server&) {}
 Server& Server::operator=(const Server&) { return (*this); }
 Server::~Server() {
     close(this->_listeningSocket);
     for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        string  message("ERROR :Closing Link: " + it->second.getIp() + " (Server shutting down)\r\n");
+        string  message = Numerics::formatDisconnectMessage(it->second, "Server shutting down");
         send(it->first, message.c_str(), message.size(), MSG_NOSIGNAL);
         close(it->first);
     }
