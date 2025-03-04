@@ -165,6 +165,12 @@ bool    Server::_isValidNickname(const string& nickname) {
     return (true);
 }
 
+bool    Server::_isChannelActive(const string& channel) {
+    if (this->_channels.find(channel) != this->_channels.end())
+        return (true);
+    return (false);
+}
+
 string  Server::_sendWelcomeBurst(Client& client) {
     client.setState(REGISTERED);
     client.setLastPingTime();
@@ -207,7 +213,7 @@ bool    isValidChannelName(const std::string& channel) {
 }
 
 string  Server::_join(Client& client, const vector<string>& params) {
-    if (params.size() < 1)
+    if (params.empty() || params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
 
     // make channel map from input params
@@ -291,6 +297,104 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
     targetClient->sendMessage(params[1], client.getNickname());
     return ("");
 }
+/*
+join #minishell
+:jerlim!~j@203.149.201.178 JOIN #minishell
+
+Client OP:
+KICK #minishell whoarr
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
+
+Client User:
+join #minishell
+:whoarr!~a@203.149.201.178 JOIN #minishell
+:platinum.libera.chat 353 whoarr @ #minishell :whoarr @jerlim
+:platinum.libera.chat 366 whoarr #minishell :End of /NAMES list.
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
+
+KICK #minishell whoarr :Memleaks!
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- Operator
+:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- User
+
+Server broadcasts the message to the clients in the room
+
+ */
+
+typedef vector< pair<string, string> > StringPairs;
+
+StringPairs stringPairs(const string& str1, const string& str2) {
+    std::istringstream  issKeys(str1);
+    std::istringstream  issValues(str2);
+    string  keyStr, valueStr;
+    vector< pair<string, string> > sp;
+    while (std::getline(issKeys, keyStr, ',')) {
+        if (!std::getline(issValues, valueStr, ','))
+            valueStr = "";
+        sp.push_back(std::make_pair(keyStr, valueStr));
+    }
+    return sp;
+}
+
+string  Server::_kick(Client& client, const vector<string>& params) {
+    if (params.size() < 2)
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "KICK", "Not enough parameters"));
+    // Map channel name to nickname
+    StringPairs channelUserPairs = stringPairs(params[0], params[1]);
+
+    for (StringPairs::iterator it = channelUserPairs.begin(); it != channelUserPairs.end(); ++it) {
+        if (it->second == "")
+            return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "KICK", "Not enough parameters"));
+    }
+
+    string reply;
+    // For channel in list of channels
+    for (StringPairs::iterator it = channelUserPairs.begin(); it != channelUserPairs.end(); ++it) {
+        if (!_isChannelActive(it->first)) {
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), it->first, "No such channel");
+            continue;
+        }            
+        Channel& channel = this->_channels.find(it->first)->second;
+        if (!client.isInChannel(it->first)) {
+            reply += Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel");
+            continue;
+        }
+        if (!channel.isClientOp(client)) {
+            reply += Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, it->first, "You're not channel operator");
+            continue;
+        }
+        Client* targetClient = this->_getClientByNickname(it->second);
+        if (targetClient == NULL) {
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, it->second, "No such nick/channel");
+            continue;
+        }
+        if (!targetClient->isInChannel(it->first)){
+            reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, it->first, "They aren't on that channel");
+            continue;
+        }
+        string  message = params.size() >= 3 ? params[2] : it->second;
+        channel.broadcastMessage(message, "KICK", it->second);
+        channel.removeClient(*targetClient);
+    }
+    return (reply);
+}
+        
+        // <kicker>
+        // <prefix><~><username>@<ip_addr>     KICK <channel> <nick>         :<nick of kicker | kick msg>
+        // libera
+        // :usernick!~usernick@203.149.201.178 KICK #heyminishell liberaTest :liberaTest           
+        
+        // ours
+        // :usernick                           KICK #test123                 :usernick
+        // Check if client is op in the desired channel?
+
+            // forcefully part target user
+
+
+        // :jerlim!~j@203.149.201.178 KICK #hello jerlim :jerlim
+    // <prefix><~ indicates non identified user by ident><username>@<ip_addr> KICK <channel> <nick> :<nick of kicker | kick msg>
+    //cout << "KICK" + " #channelA, #channelB " + "nickname"
+    
+    
 
 string Server::_ping(Client& client, const vector<string>& params) {
     (void)client;
@@ -338,7 +442,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case PART:      return (_part(client, params));
         case JOIN:      return (_join(client, params));
         case PRIVMSG:   return (_privMsg(client, params));
-        case KICK:      return ("KICK\n");
+        case KICK:      return (_kick(client, params));
         case INVITE:    return ("INVITE\n");
         case TOPIC:     return ("TOPIC\n");
         case MODE:      return ("MODE\n");

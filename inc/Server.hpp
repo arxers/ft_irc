@@ -79,6 +79,7 @@ private:
     void    _flushClientBuffer(Client& client);
     Client* _getClientByNickname(const string& nickname);
     bool    _isValidNickname(const string& nickname);
+    bool    _isChannelActive(const string& channel);
 
     string  _sendWelcomeBurst(Client& client);
 
@@ -90,6 +91,7 @@ private:
     string  _join(Client& client, const vector<string>& params);
     string  _part(Client& client, const vector<string>& params);
     string  _privMsg(Client& client, const vector<string>& params);
+    string  _kick(Client& client, const vector<string>& params);    
     string  _ping(Client& client, const vector<string>& params);
     string  _pong(Client& client, const vector<string>& params); 
     string  _quit(Client& client, const vector<string>& params);
