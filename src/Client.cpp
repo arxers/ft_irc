@@ -21,9 +21,11 @@ void    Client::sendMessage(const string& message, const string& sender) {
 
 void    Client::disconnectFromAllChannels(const string& message) {
     for (map<string, Channel*>::iterator it = this->_channels.begin(); it != this->_channels.end(); ++it) {
-        Channel& channel = *it->second;
-        channel.broadcastMessage(":" + this->getPrefix() + " QUIT :" + message);
-        channel.removeClient(*this);
+        Channel* channel = it->second;
+        if (channel) {
+            channel->broadcastMessage(":" + this->getPrefix() + " QUIT :" + message);
+            channel->removeClient(*this);
+        }
     }
 }
 

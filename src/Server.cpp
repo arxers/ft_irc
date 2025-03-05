@@ -77,6 +77,7 @@ void    Server::_addClient() {
 void    Server::_removeClient(int socketFd, const string& message) {
     Client& client = this->_clients[socketFd];
     cout << RED << client.getIp() << " disconnected from socket FD: " << socketFd << RESET << '\n';
+    client.disconnectFromAllChannels(message);
     string  closingMessage = Numerics::formatDisconnectMessage(client, message);
     send(socketFd, closingMessage.c_str(), closingMessage.size(), MSG_NOSIGNAL);
     for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
