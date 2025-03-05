@@ -53,7 +53,7 @@ int    Channel::addClient(Client& client, const string& key) {
         return (ERR_INVITEONLYCHAN);
     if (!this->_key.empty() && key != this->_key)
         return (ERR_BADCHANNELKEY);
-    if (this->_userLimit && this->_userCount > this->_userLimit)
+    if (this->_userLimit && this->_userCount >= this->_userLimit)
         return (ERR_CHANNELISFULL);
     this->_clients[client.getSocket()] = &client;
     client.addChannel(*this);
