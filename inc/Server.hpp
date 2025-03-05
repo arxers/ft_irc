@@ -22,7 +22,7 @@
 
 #define MAX_CLIENTS     100
 #define MAX_MSG_LEN     512
-#define PING_TIMEOUT    90
+#define PING_TIMEOUT    99999
 
 using std::map;
 using std::string;
@@ -72,15 +72,16 @@ private:
     Server(const Server&);
     Server& operator=(const Server&);
 
-    int     _createSocket();
-    void    _addClient();
-    void    _removeClient(int fd);
-    void    _handleClient(int clientFd);
-    string  _generateResponse(Client& client, Message message);
-    void    _flushClientBuffer(Client& client);
-    Client* _getClientByNickname(const string& nickname);
-    bool    _isValidNickname(const string& nickname);
-    bool    _hasChannel(const string& channel);
+    int         _createSocket();
+    void        _addClient();
+    void        _removeClient(int fd);
+    void        _handleClient(int clientFd);
+    string      _generateResponse(Client& client, Message message);
+    void        _flushClientBuffer(Client& client);
+    Client*     _getClientByNickname(const string& nickname);
+    Channel*    _getChannelByName(const string& channel);
+    bool        _isValidNickname(const string& nickname);
+    bool        _hasChannel(const string& channel);
 
     string  _sendWelcomeBurst(Client& client);
 
@@ -94,6 +95,7 @@ private:
     string  _privMsg(Client& client, const vector<string>& params);
     string  _kick(Client& client, const vector<string>& params);
     string  _invite(Client& client, const vector<string>& params);
+    string  _topic(Client& client, const vector<string>& params);
     string  _mode(Client& client, const vector<string>& params);
     string  _ping(Client& client, const vector<string>& params);
     string  _pong(Client& client, const vector<string>& params); 

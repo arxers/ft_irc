@@ -374,7 +374,7 @@ string  Server::_kick(Client& client, const vector<string>& params) {
             continue;
         }
         string  message = params.size() >= 3 ? params[2] : it->second;
-        string formattedMessage = ":" + client.getNickname() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message + "\r\n";
+        string formattedMessage = ":" + client.getNickname() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message;
         channel.broadcastMessage(formattedMessage);
         channel.removeClient(*targetClient);
     }
@@ -429,14 +429,14 @@ string  Server::_topic(Client& client, const vector<string>& params) {
     if (targetChannel.isTopicLocked()) 
         if (!targetChannel.isClientOp(client))
             return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
-    if (params[1].empty())
+    if (params[1].empty()) {
         targetChannel.setTopic("");
+        
         return ("");
-    targetChannel.setTopic(params[1]);
     }
-
-    string  topic = params[1];
-    if (topic.empty())
+    targetChannel.setTopic(params[1]);
+    targetChannel.broadcastMessage(client.getNickname() + " TOPIC " + targetChannelName + " :" + params[1]);
+    return ("");
 }
 
 string  Server::_mode(Client& client, const vector<string>& params) {
