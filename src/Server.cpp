@@ -67,15 +67,18 @@ void    Server::_addClient() {
         this->_clients[clientFd] = newClient;
         struct pollfd   client_pfd = {clientFd, POLLIN | POLLOUT, 0};
         this->_pollFds.push_back(client_pfd);
-        cout << newClient.getIp() <<  " connected to socket FD: "
-             << clientFd << '\n';
+        cout << GREEN << newClient.getIp() <<  " connected to socket FD: "
+             << clientFd << RESET << '\n';
         return ;
     }
     close(clientFd);
 }
 
-void    Server::_removeClient(int socketFd) {
-    cout << this->_clients[socketFd].getIp() << " disconnected from socket FD: " << socketFd << '\n';
+void    Server::_removeClient(int socketFd, const string& message) {
+    Client& client = this->_clients[socketFd];
+    cout << RED << client.getIp() << " disconnected from socket FD: " << socketFd << RESET << '\n';
+    string  closingMessage = Numerics::formatDisconnectMessage(client, message);
+    send(socketFd, closingMessage.c_str(), closingMessage.size(), MSG_NOSIGNAL);
     for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
         if (it->fd == socketFd) {
             this->_pollFds.erase(it);
@@ -93,7 +96,7 @@ void    Server::_handleClient(int clientFd) {
 
     receivedBytes = recv(clientFd, buf, sizeof(buf), 0);
     if (receivedBytes == 0) {
-        this->_disconnecting.insert(clientFd);
+        this->_disconnecting.push_back(std::make_pair(clientFd, "Client Quit"));
         return ;
     }
 
@@ -138,10 +141,9 @@ string  Server::_pass(Client& client, const vector<string>& params) {
         client.setState(AUTHENTICATED);
         return ("");
     }
-    this->_disconnecting.insert(client.getSocket());
+    this->_disconnecting.push_back(std::make_pair(client.getSocket(), "Incorrect Password"));
     string  reply;
     reply += Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, client.getNickname(), "Password incorrect");
-    reply += Numerics::formatDisconnectMessage(client, "Incorrect Password");
     return (reply);
 }
 
@@ -574,8 +576,8 @@ string Server::_quit(Client& client, const vector<string>& params) {
     (void)client;
     (void)params;
 
-    this->_disconnecting.insert(client.getSocket());
-    return (Numerics::formatDisconnectMessage(client, "Client Quit"));
+    this->_disconnecting.push_back(std::make_pair(client.getSocket(), "Client Quit"));
+    return ("");
 }
 
 string Server::_generateResponse(Client& client, Message message) {
@@ -634,8 +636,8 @@ void    Server::start() {
         throw (std::runtime_error("start: Server not initialized"));
 
     this->_listeningSocket = _createSocket();
-    cout << "Server " << this->_name << " started successfully!\n"
-         << "Listening on port " << this->_port << "...\n"
+    cout << "Server " << BOLD << "[ " << this->_name << " ]" << RESET << " started successfully!\n"
+         << "Listening on port " << BOLD << "[ " << this->_port << " ]" << RESET << '\n'
          << "Waiting for client connections...\n";
 
     running = true;
@@ -657,11 +659,8 @@ void    Server::start() {
             }
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
             Client& client = it->second;
-            if (client.isPinged() && client.getTimeSinceLastPing() >= PING_TIMEOUT) {
-                string& buffer = it->second.getOutputBuffer();
-                buffer += Numerics::formatDisconnectMessage(client, "Ping timeout: " + toString(PING_TIMEOUT) + "seconds");
-                this->_disconnecting.insert(it->first);
-            }
+            if (client.isPinged() && client.getTimeSinceLastPing() >= PING_TIMEOUT)
+                this->_disconnecting.push_back(std::make_pair(it->first, "Ping timeout: " + toString(PING_TIMEOUT) + "seconds"));
         }
 
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
@@ -679,8 +678,8 @@ void    Server::start() {
             _flushClientBuffer(it->second);
 
         if (!this->_disconnecting.empty()) {
-            for (set<int>::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
-                _removeClient(*it);
+            for (vector< pair<int, string > >::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
+                _removeClient(it->first, it->second);
             this->_disconnecting.clear();
         }
 

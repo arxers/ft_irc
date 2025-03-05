@@ -26,7 +26,13 @@
 #endif
 #define MAX_CLIENTS     100
 #define MAX_MSG_LEN     512
-#define PING_TIMEOUT    99999
+#define PING_TIMEOUT    90
+
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define BOLD    "\033[1m"
+#define RESET   "\033[0m"
+
 
 using std::map;
 using std::string;
@@ -68,7 +74,7 @@ private:
     int     _clientCount;
 
     vector<pollfd>          _pollFds;
-    set<int>                _disconnecting;
+    vector< pair<int, string> > _disconnecting;
     set<string>             _emptyChannels;
 
     map<int, Client>        _clients;
@@ -81,7 +87,7 @@ private:
 
     int         _createSocket();
     void        _addClient();
-    void        _removeClient(int fd);
+    void        _removeClient(int socketFd, const string& message);
     void        _handleClient(int clientFd);
     string      _generateResponse(Client& client, Message message);
     void        _flushClientBuffer(Client& client);
