@@ -92,6 +92,7 @@ private:
     string  _part(Client& client, const vector<string>& params);
     string  _privMsg(Client& client, const vector<string>& params);
     string  _kick(Client& client, const vector<string>& params);
+    string  _invite(Client& client, const vector<string>& params);
     string  _mode(Client& client, const vector<string>& params);
     string  _ping(Client& client, const vector<string>& params);
     string  _pong(Client& client, const vector<string>& params); 

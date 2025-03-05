@@ -39,9 +39,7 @@ private:
     time_t  _lastPingTime;
     bool    _pinged;
 
-    // vector<string>    _channels;
     map<string, Channel*>   _channels;
-
 
 public:
     void    addChannel(Channel& channel);

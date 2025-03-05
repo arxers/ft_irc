@@ -245,6 +245,8 @@ string  Server::_join(Client& client, const vector<string>& params) {
         } //if channel already exists
         if (this->_channels.find(channelKeyMap[i].first) != this->_channels.end()) {
             int result = this->_channels[channelKeyMap[i].first].addClient(client, channelKeyMap[i].second);
+            if (result == ERR_INVITEONLYCHAN)
+                reply += Numerics::formatMessage(this->_name, ERR_INVITEONLYCHAN, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+i)");
             if (result == ERR_BADCHANNELKEY)
                 reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+k)");
             else if (result == ERR_CHANNELISFULL)
@@ -407,7 +409,13 @@ string  Server::_kick(Client& client, const vector<string>& params) {
     // <prefix><~ indicates non identified user by ident><username>@<ip_addr> KICK <channel> <nick> :<nick of kicker | kick msg>
     //cout << "KICK" + " #channelA, #channelB " + "nickname"
     
-    
+
+string  Server::_invite(Client& client, const vector<string>& params) {
+    (void)client;
+    (void)params;
+    return "";
+}
+
 string  Server::_mode(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
@@ -568,7 +576,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case JOIN:      return (_join(client, params));
         case PRIVMSG:   return (_privMsg(client, params));
         case KICK:      return (_kick(client, params));
-        case INVITE:    return ("INVITE\n");
+        case INVITE:    return (_invite(client, params));
         case TOPIC:     return ("TOPIC\n");
         case MODE:      return (_mode(client, params));
         case PING:      return (_ping(client, params));

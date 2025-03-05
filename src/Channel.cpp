@@ -21,6 +21,10 @@ bool    Channel::isTopicLocked() const {
     return (this->_topicLock);
 }
 
+bool    Channel::isClientInvited(Client& client) const {
+    return (this->_invitees.find(client.getSocket()) != this->_invitees.end());
+}
+
 bool    Channel::isClientInChannel(const string& nickname) const {
     for (map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
         if (it->second->getNickname() == nickname)
@@ -28,16 +32,8 @@ bool    Channel::isClientInChannel(const string& nickname) const {
     return (false);
 }
 
-bool    Channel::isClientOp(const string& nickname) const {
-    for (map<int, Client*>::const_iterator it = this->_operators.begin(); it != this->_operators.end(); ++it)
-        if (it->second->getNickname() == nickname)
-            return (true);
-    return (false);
-}
-
 bool    Channel::isClientOp(Client& client) const {
-    std::map<int, Client*>::const_iterator it = this->_operators.find(client.getSocket());
-    return (it != this->_operators.end());
+    return (this->_operators.find(client.getSocket()) != this->_operators.end());
 }
 
 bool    Channel::hasChannelKey() const {
@@ -49,6 +45,8 @@ bool    Channel::hasUserLimit() const {
 }
 
 int    Channel::addClient(Client& client, const string& key) {
+    if (!this->isClientInvited(client))
+        return (ERR_INVITEONLYCHAN);
     if (!this->_key.empty() && key != this->_key)
         return (ERR_BADCHANNELKEY);
     if (this->_userCount > this->_userLimit)
@@ -61,11 +59,20 @@ void    Channel::removeClient(Client& client) {
     client.removeChannel(this->_name);
     this->_clients.erase(client.getSocket());
 }
+
+void    Channel::addInvitee(Client& client) {
+    this->_invitees.insert(client.getSocket());
+}
+
+void    Channel::removeInvitee(Client& client) {
+    this->_invitees.erase(client.getSocket());
+}
+
 void    Channel::addOperator(Client& client) {
-    this->_operators[client.getSocket()] = &client;
+    this->_operators.insert(client.getSocket());
 }
 void    Channel::removeOperator(Client& client) {
-    this->_clients.erase(client.getSocket());
+    this->_operators.erase(client.getSocket());
 }
 
 void    Channel::broadcastMessage(const string& message, const string& command, const string& sender) {
