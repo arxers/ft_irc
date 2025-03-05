@@ -20,7 +20,7 @@ int main(int ac, char** av) {
     
     try {
         Server server;
-        server.init("poopoo", port, password);
+        server.init(HOSTNAME, port, password);
         server.start();
         
     } catch (std::exception& e) {

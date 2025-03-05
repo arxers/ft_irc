@@ -1,15 +1,17 @@
 NAME = ircserv
+HOSTNAME:= $(shell hostname)
 SRC = src/main.cpp src/Server.cpp src/Client.cpp src/Channel.cpp src/Message.cpp src/Numerics.cpp
 
 OBJ = $(SRC:.cpp=.o)
 DEP = $(SRC:.cpp=.d)
 
 CXX = @c++
-CXXFLAGS = -Wall -Wextra -Werror -MMD -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -DHOSTNAME=\"$(HOSTNAME)\"
 
 RED		= \033[1;31m
 GREEN	= \033[1;32m
 RESET	= \033[0m
+
 
 all: $(NAME)
 

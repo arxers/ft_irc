@@ -20,6 +20,9 @@
 #include "Message.hpp"
 #include "Numerics.hpp"
 
+#ifndef HOSTNAME
+    #define HOSTNAME    "0.0.0.0"
+#endif
 #define MAX_CLIENTS     100
 #define MAX_MSG_LEN     512
 #define PING_TIMEOUT    99999
