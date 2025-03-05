@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -13,6 +14,7 @@
 using std::string;
 using std::vector;
 using std::map;
+using std::set;
 
 enum    e_client_state {
     CONNECTED,
@@ -40,13 +42,12 @@ private:
     time_t  _lastPingTime;
     bool    _pinged;
 
-    map<string, Channel*>   _channels;
+    set<string> _channels;
 
 public:
     void    addChannel(Channel& channel);
     void    removeChannel(const string& channel);
     void    sendMessage(const string& message, const string& sender);
-    void    disconnectFromAllChannels(const string& message);
 
     // Predicates, getters, setters
     bool    isOperator() const ;
@@ -64,6 +65,7 @@ public:
     const string&   getNickname() const;
     const string&   getUsername() const;
     string          getPrefix() const;
+    set<string>     getChannels() const;
     time_t  getIdleTime() const;
     time_t  getTimeSinceLastPing() const;
 

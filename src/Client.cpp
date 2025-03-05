@@ -7,7 +7,7 @@
 
 void    Client::addChannel(Channel& channel) {
     string channelName = channel.getName();
-    this->_channels[channelName] = &channel;
+    this->_channels.insert(channelName);
 }
 
 void    Client::removeChannel(const string& channel) {
@@ -17,16 +17,6 @@ void    Client::removeChannel(const string& channel) {
 void    Client::sendMessage(const string& message, const string& sender) {
     string formattedMessage = ":" + sender + " PRIVMSG " + this->_nickname + " :" + message + "\r\n";
     this->_outputBuffer += formattedMessage;
-}
-
-void    Client::disconnectFromAllChannels(const string& message) {
-    for (map<string, Channel*>::iterator it = this->_channels.begin(); it != this->_channels.end(); ++it) {
-        Channel* channel = it->second;
-        if (channel) {
-            channel->broadcastMessage(":" + this->getPrefix() + " QUIT :" + message);
-            channel->removeClient(*this);
-        }
-    }
 }
 
 // Predicates, getters, setters
@@ -48,7 +38,7 @@ bool    Client::isPinged() const {
 }
 
 bool    Client::isInChannel(const string& channel) const {
-    map<string, Channel*>::const_iterator it = this->_channels.find(channel);
+    set<string>::const_iterator it = this->_channels.find(channel);
     if (it != this->_channels.end())
         return (true);
     return (false);
@@ -83,6 +73,10 @@ const string&  Client::getUsername() const {
 
 string  Client::getPrefix() const {
     return (this->_nickname + "!~" + this->_username + "@" + inet_ntoa(this->_addr.sin_addr));
+}
+
+set<string> Client::getChannels() const {
+    return (this->_channels);
 }
 
 time_t  Client::getIdleTime() const{

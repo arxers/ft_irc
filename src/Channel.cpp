@@ -14,7 +14,6 @@
 // public:
 
 bool    Channel::isEmpty() const {
-    std::cout << _userCount << '\n';
     return (!this->_userCount);
 }
 
@@ -59,12 +58,14 @@ int    Channel::addClient(Client& client, const string& key) {
     this->_clients[client.getSocket()] = &client;
     client.addChannel(*this);
     this->_userCount++;
+    std::cout << client.getPrefix() << " joined " << this->_name << ". User count: " << _userCount << '\n';
     return (RPL_SUCCESS);
 }
 void    Channel::removeClient(Client& client) {
     client.removeChannel(this->_name);
     this->_clients.erase(client.getSocket());
     this->_userCount--;
+    std::cout << client.getPrefix() << " left " << this->_name << ". User count: " << _userCount << '\n';
 }
 
 void    Channel::addInvitee(Client& client) {
@@ -83,6 +84,8 @@ void    Channel::removeOperator(Client& client) {
 }
 
 void    Channel::broadcastMessage(const string& message, const string& command, const string& sender) {
+    if (this->_userCount < 1)
+        return ;
     for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         string  formattedMessage = ":" + sender + " " + command + " " + this->_name + " :" + message + "\r\n";
         string& clientBuffer = it->second->getOutputBuffer();
@@ -94,6 +97,8 @@ void    Channel::broadcastMessage(const string& message, const string& command, 
 // :jjjj!~j@203.149.201.178 PART #test123123 :param
 
 void    Channel::broadcastMessage(const string& message, const string& command, const Client& sender) {
+    if (this->_userCount < 1)
+        return ;
     for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         if (it->first != sender.getSocket()) {
             string formattedMessage = ":" + sender.getNickname() + " " + command + " " + this->_name + " :" + message + "\r\n";
@@ -104,8 +109,13 @@ void    Channel::broadcastMessage(const string& message, const string& command, 
 }
 
 void    Channel::broadcastMessage(const string& message) {
+    if (this->_userCount < 1)
+        return ;
     for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        string& clientBuffer = it->second->getOutputBuffer();
+        Client* client = it->second;
+        if (!client)
+            continue ;
+        string& clientBuffer = client->getOutputBuffer();
         clientBuffer += message + CRLF;
     }
 }

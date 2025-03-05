@@ -77,7 +77,17 @@ void    Server::_addClient() {
 void    Server::_removeClient(int socketFd, const string& message) {
     Client& client = this->_clients[socketFd];
     cout << RED << client.getIp() << " disconnected from socket FD: " << socketFd << RESET << '\n';
-    client.disconnectFromAllChannels(message);
+    
+    set<string> clientChannels = client.getChannels();
+    for (set<string>::iterator it = clientChannels.begin(); it != clientChannels.end(); ++it) {
+        Channel* channel = this->_getChannelByName(*it);
+        if (!channel)
+            continue;
+        cout << client.getPrefix() << " removed from " << channel->getName() << '\n';
+        if (!channel->isEmpty())
+            channel->broadcastMessage(":" + client.getPrefix() + " QUIT " + message);
+    }
+
     string  closingMessage = Numerics::formatDisconnectMessage(client, message);
     send(socketFd, closingMessage.c_str(), closingMessage.size(), MSG_NOSIGNAL);
     for (vector<pollfd>::iterator it = this->_pollFds.begin(); it != this->_pollFds.end(); ++it) {
@@ -300,7 +310,8 @@ string  Server::_part(Client& client, const vector<string>& params) {
         channel.broadcastMessage(":" + client.getPrefix() + " PART " + channel.getName());
         channel.removeClient(client);
         if (channel.isEmpty())
-            this->_emptyChannels.insert(channel.getName());
+            this->_channels.erase(channel.getName());
+            // this->_emptyChannels.insert(channel.getName());
     }
     return (reply);
 }
@@ -387,7 +398,8 @@ string  Server::_kick(Client& client, const vector<string>& params) {
         channel.broadcastMessage(formattedMessage);
         channel.removeClient(*targetClient);
         if (channel.isEmpty())
-            this->_emptyChannels.insert(channel.getName());
+            this->_channels.erase(channel.getName());
+            // this->_emptyChannels.insert(channel.getName());
     }
     return (reply);
 }
@@ -646,7 +658,7 @@ void    Server::start() {
     this->_pollFds.push_back(server_pfd);
 
     while (running) {
-        int pollResult = poll(this->_pollFds.data(), this->_pollFds.size(), -1);
+        int pollResult = poll(this->_pollFds.data(), this->_pollFds.size(), 0);
         if (pollResult == -1) {
             break ;
         }
@@ -681,12 +693,6 @@ void    Server::start() {
         if (!this->_disconnecting.empty()) {
             for (vector< pair<int, string > >::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
                 _removeClient(it->first, it->second);
-            this->_disconnecting.clear();
-        }
-
-        if (!this->_emptyChannels.empty()) {
-            for (set<string>::iterator it = this->_emptyChannels.begin(); it != this->_emptyChannels.end(); ++it)
-                this->_channels.erase(*it);
             this->_disconnecting.clear();
         }
     }
