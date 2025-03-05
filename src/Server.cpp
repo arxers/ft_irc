@@ -351,12 +351,12 @@ string  Server::_kick(Client& client, const vector<string>& params) {
             reply += Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, it->second, "No such nick/channel");
             continue;
         }
-        if (!targetClient->isInChannel(it->first)){
+        if (!targetClient->isInChannel(it->second)){
             reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, it->first, "They aren't on that channel");
             continue;
         }
         string  message = params.size() >= 3 ? params[2] : it->second;
-        channel.broadcastMessage(message, "KICK", it->second);
+        channel.broadcastMessage(message, "KICK", client.getNickname());
         channel.removeClient(*targetClient);
     }
     return (reply);
