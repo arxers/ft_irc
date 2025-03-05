@@ -50,10 +50,12 @@ bool    Channel::hasUserLimit() const {
 
 int    Channel::addClient(Client& client, const string& key) {
     if (!this->_key.empty() && key != this->_key)
-        return (-1);
+        return (ERR_BADCHANNELKEY);
+    if (this->_userCount > this->_userLimit)
+        return (ERR_CHANNELISFULL);
     this->_clients[client.getSocket()] = &client;
     client.addChannel(*this);
-    return (0);
+    return (RPL_SUCCESS);
 }
 void    Channel::removeClient(Client& client) {
     client.removeChannel(this->_name);

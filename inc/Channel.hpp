@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Numerics.hpp"
 #include "Client.hpp"
 
 using std::string;
@@ -15,6 +16,7 @@ private:
     bool                _inviteOnly;    // i
     bool                _topicLock;     // t
     int                 _userLimit;     // l
+    int                 _userCount;
     string              _key;           // k
 
 public:

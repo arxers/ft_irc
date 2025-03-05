@@ -244,8 +244,11 @@ string  Server::_join(Client& client, const vector<string>& params) {
             continue ;
         } //if channel already exists
         if (this->_channels.find(channelKeyMap[i].first) != this->_channels.end()) {
-            if (this->_channels[channelKeyMap[i].first].addClient(client, channelKeyMap[i].second) == -1)
-            reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+k)");
+            int result = this->_channels[channelKeyMap[i].first].addClient(client, channelKeyMap[i].second);
+            if (result == ERR_BADCHANNELKEY)
+                reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+k)");
+            else if (result == ERR_CHANNELISFULL)
+                reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+l)");
         } else { //else create channel
             Channel newChannel(channelKeyMap[i].first, client);
             this->_channels[channelKeyMap[i].first] = newChannel;
