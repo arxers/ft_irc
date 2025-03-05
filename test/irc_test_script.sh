@@ -1,6 +1,5 @@
 #!/bin/bash
 
-tmux set -g mouse on
 
 # Variables
 SESSION="irctest"
@@ -9,13 +8,15 @@ PORT="6667"             # Update with your desired port
 PASSWORD="secret"        # Update with your server password
 CHANNEL="#testingchannel123"
 
+
 # Start a new tmux session
+tmux kill-session
 tmux new-session -d -s $SESSION
 tmux setw synchronize-panes off
+tmux set -g mouse on
 
 # Pane 1: Run the IRC server
 tmux wait-for -L serverOnline
-tmux send-keys -t $SESSION "clear" C-m
 tmux send-keys -t $SESSION "valgrind ./ircserv $PORT $PASSWORD" C-m
 sleep 1
 tmux wait-for -S serverOnline
@@ -29,7 +30,6 @@ tmux split-window -h -t $SESSION
 # Pane 2: Connect as chanop using netcat
 tmux wait-for serverOnline
 tmux select-pane -t 1
-tmux send-keys -t $SESSION "clear" C-m
 tmux send-keys -t $SESSION "nc -C $SERVER_IP $PORT" C-m
 
 tmux send-keys -t $SESSION "PASS $PASSWORD" C-m
@@ -108,8 +108,8 @@ tmux wait-for -S betrayal
 # Kick users from the channel using chanop
 tmux select-pane -t 1
 sleep 1
-tmux wait-for betrayal
 tmux wait-for -L payback
+tmux wait-for betrayal
 tmux send-keys -t $SESSION "PRIVMSG $CHANNEL :After all I've done for you.. begone!" C-m
 tmux send-keys -t $SESSION "KICK #wrongchan user1" C-m
 sleep 1
@@ -146,3 +146,4 @@ tmux send-keys -t $SESSION C-c
 # Attach to the tmux session
 tmux select-pane -t 0
 tmux attach -t $SESSION
+

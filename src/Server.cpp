@@ -365,7 +365,8 @@ string  Server::_kick(Client& client, const vector<string>& params) {
             continue;
         }
         string  message = params.size() >= 3 ? params[2] : it->second;
-        channel.broadcastMessage(message, "KICK", client.getNickname());
+        string formattedMessage = ":" + client.getNickname() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message + "\r\n";
+        channel.broadcastMessage(formattedMessage);
         channel.removeClient(*targetClient);
     }
     return (reply);

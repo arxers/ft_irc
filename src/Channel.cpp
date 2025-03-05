@@ -45,7 +45,7 @@ bool    Channel::hasUserLimit() const {
 }
 
 int    Channel::addClient(Client& client, const string& key) {
-    if (!this->isClientInvited(client))
+    if (this->_inviteOnly && !this->isClientInvited(client))
         return (ERR_INVITEONLYCHAN);
     if (!this->_key.empty() && key != this->_key)
         return (ERR_BADCHANNELKEY);
@@ -93,6 +93,13 @@ void    Channel::broadcastMessage(const string& message, const string& command, 
             string& clientBuffer = it->second->getOutputBuffer();
             clientBuffer += formattedMessage;
         }
+    }
+}
+
+void    Channel::broadcastMessage(const string& message) {
+    for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        string& clientBuffer = it->second->getOutputBuffer();
+        clientBuffer += message;
     }
 }
 
