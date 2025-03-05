@@ -194,7 +194,7 @@ bool    Server::_hasChannel(const string& channel) {
 string  Server::_sendWelcomeBurst(Client& client) {
     client.setState(REGISTERED);
     client.setLastPingTime();
-    return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to " + this->_name + ", " + client.getNickname()));
+    return (Numerics::formatMessage(this->_name, RPL_WELCOME, client.getNickname(), "Welcome to iPutOnMyRobeAndWizardChat, " + client.getNickname() + "!"));
 }
 
 string  Server::_nick(Client& client, const vector<string>& params) {
