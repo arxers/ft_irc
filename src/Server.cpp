@@ -653,7 +653,7 @@ void    Server::start() {
     this->_pollFds.push_back(server_pfd);
 
     while (running) {
-        int pollResult = poll(this->_pollFds.data(), this->_pollFds.size(), 100);
+        int pollResult = poll(this->_pollFds.data(), this->_pollFds.size(), 1000);
         if (pollResult == -1) {
             break ;
         }
