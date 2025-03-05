@@ -21,6 +21,20 @@ bool    Channel::isTopicLocked() const {
     return (this->_topicLock);
 }
 
+bool    Channel::isClientInChannel(const string& nickname) const {
+    for (map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+        if (it->second->getNickname() == nickname)
+            return (true);
+    return (false);
+}
+
+bool    Channel::isClientOp(const string& nickname) const {
+    for (map<int, Client*>::const_iterator it = this->_operators.begin(); it != this->_operators.end(); ++it)
+        if (it->second->getNickname() == nickname)
+            return (true);
+    return (false);
+}
+
 bool    Channel::isClientOp(Client& client) const {
     std::map<int, Client*>::const_iterator it = this->_operators.find(client.getSocket());
     return (it != this->_operators.end());
@@ -73,6 +87,18 @@ void    Channel::broadcastMessage(const string& message, const string& command, 
     }
 }
 
+void    Channel::setInviteOnly(bool inviteOnly){
+    this->_inviteOnly = inviteOnly;
+}
+
+void    Channel::setTopicLock(bool topicLock) {
+    this->_topicLock = topicLock;
+}
+
+void    Channel::setUserLimit(int userLimit) {
+    this->_userLimit = userLimit;
+}
+
 void    Channel::setKey(const string& key) {
     this->_key = key;
 }
@@ -87,6 +113,13 @@ const string& Channel::getKey() const{
 
 int Channel::getUserLimit() const {
     return (this->_userLimit);
+}
+
+Client* Channel::getClient(const string& nickname) {
+    for (map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+        if (it->second->getNickname() == nickname)
+            return (it->second);
+    return (NULL);
 }
 
 Channel::Channel() {}

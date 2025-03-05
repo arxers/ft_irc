@@ -134,6 +134,7 @@ enum e_numeric {
     ERR_NOTREGISTERED = 451,     // ":You have not registered"
     ERR_NEEDMOREPARAMS = 461,    // "<command> :Not enough parameters"
     ERR_ALREADYREGISTERED = 462, // ":You may not reregister"
+    ERR_KEYSET = 467,            // ":Channel key already set"
     ERR_PASSWDMISMATCH = 464,    // ":Password incorrect"
     ERR_CHANNELISFULL = 471,     // "<channel> :Cannot join channel (+l)"
     ERR_UNKNOWNMODE = 472,       // "<char> :is unknown mode char to me"

@@ -1,5 +1,9 @@
 #include "../inc/Server.hpp"
 
+static bool isNumber(const string& str) {
+    return (str.find_first_not_of("1234567890") == string::npos);
+}
+
 static string toString(int num) {
     std::ostringstream oss;
     oss << num;
@@ -412,7 +416,7 @@ string  Server::_mode(Client& client, const vector<string>& params) {
         return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), params[0], "No such nick/channel"));
     
     if (!client.isInChannel(params[0]))
-        Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel");
+        return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel"));
     
     Channel& channel = this->_channels[params[0]];
 
@@ -441,17 +445,75 @@ string  Server::_mode(Client& client, const vector<string>& params) {
                 if (i + 1 < params.size() && params[i + 1][0] != '+' && params[i + 1][0] != '-') {
                     modes.push_back(mode);
                     modeParams.push_back(params[++i]);
-                }
+                } else
+                    return (Numerics::formatMessage(this->_name, ERR_UNKNOWNMODE, client.getNickname(), "Missing parameter for mode " + mode));
             } else
                 modes.push_back(mode);
         } else if (mode[0] == '-') {
             modes.push_back(mode);
         } else {
-            ; // invalid mode
+            return (Numerics::formatMessage(this->_name, ERR_UNKNOWNMODE, client.getNickname(), mode, "is unknown mode char to me for " + channel.getName()));
         }
     }
 
-    return ("");
+    if (!channel.isClientOp(client))
+        return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
+
+    string  reply;
+    for (size_t i = 0, j = 0; i < modes.size(); ++i) {
+        // set inviteOnly flag
+        if (modes[i] == "+i" || modes[i] == "-i") {
+            if (modes[i] == "+i")
+                channel.setInviteOnly(true);
+            else
+                channel.setInviteOnly(false);
+
+        // Set topicLock flag
+        } else if (modes[i] == "+t" || modes[i] == "-t") {
+            if (modes[i] == "+t")
+                channel.setTopicLock(true);
+            else
+                channel.setTopicLock(false);
+
+        // Set or remove channel key
+        } else if (modes[i] == "+k" || modes[i] == "-k") {
+            if (j <= 3 && modes[i] == "+k") {
+                if (channel.hasChannelKey()) {
+                    reply += Numerics::formatMessage(this->_name, ERR_KEYSET, client.getNickname(), "Channel key already set");
+                    ++j;
+                    continue ;
+                } else
+                    channel.setKey(modeParams[j++]);
+            } else
+                channel.setKey("");
+        // Add or remove operator
+        } else if (j <= 3 && (modes[i] == "+o" || modes[i] == "-o")) {
+            if (!channel.isClientInChannel(modeParams[j])) {
+                reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, client.getNickname(), modeParams[j], "They aren't on that channel");
+                j++;
+                continue ;
+            }
+            Client& targetClient = *channel.getClient(modeParams[j]);
+            if (modes[i] == "+o" && !channel.isClientOp(targetClient))
+                channel.addOperator(targetClient);
+            else if (modes[i] == "-o")
+                channel.removeOperator(targetClient);
+            j++;
+
+        // Set or remove channel user limit
+        } else if ((modes[i] == "+l" || modes[i] == "-l")) {
+            if (j <= 3 && modes[i] == "+l") {
+                if (!isNumber(modeParams[j])) {
+                    reply += Numerics::formatMessage(this->_name, ERR_UNKNOWNMODE, client.getNickname(), "Invalid parameter for mode +l");
+                    continue ;
+                }
+                int n = std::atoi(modeParams[j++].c_str());
+                channel.setUserLimit(n);
+            } else if (modes[i] == "-l")
+                channel.setUserLimit(0);
+        }
+    }
+    return (reply);
 }
 
 string Server::_ping(Client& client, const vector<string>& params) {
@@ -583,10 +645,6 @@ void    Server::start() {
 
 static bool isValidPort(int n) {
     return (n >= 0 && n <= 65535);
-}
-
-static bool isNumber(const string& str) {
-    return (str.find_first_not_of("1234567890") == string::npos);
 }
 
 static void initCommandMap(commandmap_t& map) {

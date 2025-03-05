@@ -20,6 +20,8 @@ private:
 public:
     bool    isInviteOnly() const;
     bool    isTopicLocked() const;
+    bool    isClientInChannel(const string& nickname) const;
+    bool    isClientOp(const string& nickname) const;
     bool    isClientOp(Client& client) const;
     bool    hasChannelKey() const;
     bool    hasUserLimit() const;
@@ -32,11 +34,15 @@ public:
     void    broadcastMessage(const string& message, const string& command, const string& sender);
     void    broadcastMessage(const string& message, const string& command, const Client& client);
 
+    void    setInviteOnly(bool inviteOnly);
+    void    setTopicLock(bool topicLock);
+    void    setUserLimit(int userLimit);
     void    setKey(const string& key);
 
     const string&   getName() const;
     const string&   getKey() const;
     int             getUserLimit() const;
+    Client*         getClient(const string& nickname);
 
 
     Channel();
