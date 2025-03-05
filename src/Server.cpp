@@ -84,8 +84,8 @@ void    Server::_removeClient(int socketFd, const string& message) {
         if (!channel)
             continue;
         cout << client.getPrefix() << " removed from " << channel->getName() << '\n';
-        if (!channel->isEmpty())
-            channel->broadcastMessage(":" + client.getPrefix() + " QUIT " + message);
+        // if (!channel->isEmpty())
+        //     channel->broadcastMessage(":" + client.getPrefix() + " QUIT " + message);
     }
 
     string  closingMessage = Numerics::formatDisconnectMessage(client, message);
