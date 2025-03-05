@@ -427,7 +427,7 @@ string  Server::_invite(Client& client, const vector<string>& params) {
         if (!client.isInChannel(targetChannelName))
             return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, targetNickname, targetChannelName, "You're not on that channel"));
         Channel& targetChannel = this->_channels[targetChannelName];
-        if (targetChannel.isInviteOnly() && targetChannel.isClientOp(*targetClient))
+        if (targetChannel.isInviteOnly() && targetChannel.isClientOp(client))
             return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
         if (targetChannel.isClientInvited(*targetClient))
             return "";
