@@ -53,6 +53,7 @@ public:
 
 
     Channel();
+    Channel(const string& channelName, Client& client, set<int> invitees);
     Channel(const string& channelName, Client& client);
     Channel(const Channel& rhs);
     Channel& operator=(const Channel& rhs);

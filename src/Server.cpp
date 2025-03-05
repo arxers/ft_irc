@@ -239,21 +239,23 @@ string  Server::_join(Client& client, const vector<string>& params) {
 
     string reply;
     for (size_t i = 0; i < channelKeyMap.size(); ++i) {
-        if (!isValidChannelName(channelKeyMap[i].first)) {
-            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), channelKeyMap[i].first, "No such channel");
+        string  targetChannelName = channelKeyMap[i].first;
+        if (!isValidChannelName(targetChannelName)) {
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), targetChannelName, "No such channel");
             continue ;
         } //if channel already exists
-        if (this->_channels.find(channelKeyMap[i].first) != this->_channels.end()) {
-            int result = this->_channels[channelKeyMap[i].first].addClient(client, channelKeyMap[i].second);
+        if (this->_channels.find(targetChannelName) != this->_channels.end()) {
+            int result = this->_channels[targetChannelName].addClient(client, channelKeyMap[i].second);
             if (result == ERR_INVITEONLYCHAN)
-                reply += Numerics::formatMessage(this->_name, ERR_INVITEONLYCHAN, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+i)");
+                reply += Numerics::formatMessage(this->_name, ERR_INVITEONLYCHAN, client.getNickname(), targetChannelName, "Cannot join channel (+i)");
             if (result == ERR_BADCHANNELKEY)
-                reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+k)");
+                reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), targetChannelName, "Cannot join channel (+k)");
             else if (result == ERR_CHANNELISFULL)
-                reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+l)");
+                reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), targetChannelName, "Cannot join channel (+l)");
         } else { //else create channel
-            Channel newChannel(channelKeyMap[i].first, client);
-            this->_channels[channelKeyMap[i].first] = newChannel;
+            Channel newChannel(targetChannelName, client, this->_pendingInvites[targetChannelName]);
+            this->_pendingInvites.erase(targetChannelName);
+            this->_channels[targetChannelName] = newChannel;
         }
     }
     return (reply);
