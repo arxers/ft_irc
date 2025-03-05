@@ -3,13 +3,15 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include "Client.hpp"
 
 using std::string;
 
 #define CRLF "\r\n"
 
-enum e_numeric {
+enum e_num {
     // 001–099: Client-server connection responses
+    RPL_SUCCESS = 0,             // Success!
     RPL_WELCOME = 1,             // "Welcome to the Internet Relay Network <nick>!<user>@<host>"
     RPL_YOURHOST = 2,            // "Your host is <servername>, running version <ver>"
     RPL_CREATED = 3,             // "This server was created <date>"
@@ -134,6 +136,7 @@ enum e_numeric {
     ERR_NOTREGISTERED = 451,     // ":You have not registered"
     ERR_NEEDMOREPARAMS = 461,    // "<command> :Not enough parameters"
     ERR_ALREADYREGISTERED = 462, // ":You may not reregister"
+    ERR_KEYSET = 467,            // ":Channel key already set"
     ERR_PASSWDMISMATCH = 464,    // ":Password incorrect"
     ERR_CHANNELISFULL = 471,     // "<channel> :Cannot join channel (+l)"
     ERR_UNKNOWNMODE = 472,       // "<char> :is unknown mode char to me"
@@ -150,6 +153,7 @@ enum e_numeric {
     ERR_USERSDONTMATCH = 502     // ":Cannot change mode for other users"
 };
 
+class Client;
 
 class Numerics {
 private:
@@ -157,19 +161,7 @@ private:
     Numerics(const Numerics&);
     Numerics&    operator=(const Numerics&);
 public:
-    static string   formatMessage(const string& server, e_numeric num, const string& nick, const string& message) {
-        std::ostringstream oss;
-        oss << std::setw(3) << std::setfill('0') <<  num;
-        return (":" + server + " " + oss.str() + " " + nick + " :" + message + CRLF);
-    }
-
-    static string   formatMessage(const string& server, e_numeric num, const string& nick, const string& param, const string& message) {
-        std::ostringstream oss;
-        oss << std::setw(3) << std::setfill('0') <<  num;
-        return (":" + server + " " + oss.str() + " " + nick + " " + param + " :" + message  + CRLF);
-    }
-
-    static string   formatDisconnectMessage(const Client& client, const string& message) {
-        return ("ERROR :Closing Link: " + client.getIp() + " (" + message + ")\r\n");
-    }
+    static string   formatMessage(const string& server, e_num num, const string& nick, const string& message);
+    static string   formatMessage(const string& server, e_num num, const string& nick, const string& param, const string& message);
+    static string   formatDisconnectMessage(const Client& client, const string& message);
 };
