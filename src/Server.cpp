@@ -424,7 +424,7 @@ string  Server::_invite(Client& client, const vector<string>& params) {
     bool hasChannel = this->_hasChannel(params[1]);
 
     if (hasChannel) { // Channel exists
-        if (!targetClient->isInChannel(targetChannelName))
+        if (!client.isInChannel(targetChannelName))
             return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, targetNickname, targetChannelName, "You're not on that channel"));
         Channel& targetChannel = this->_channels[targetChannelName];
         if (targetChannel.isInviteOnly() && targetChannel.isClientOp(*targetClient))
