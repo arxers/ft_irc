@@ -339,20 +339,20 @@ string  Server::_kick(Client& client, const vector<string>& params) {
         }            
         Channel& channel = this->_channels.find(it->first)->second;
         if (!client.isInChannel(it->first)) {
-            reply += Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel");
+            reply += Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), it->first, "You're not on that channel");
             continue;
         }
         if (!channel.isClientOp(client)) {
-            reply += Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, it->first, "You're not channel operator");
+            reply += Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), it->first, "You're not channel operator");
             continue;
         }
         Client* targetClient = this->_getClientByNickname(it->second);
         if (targetClient == NULL) {
-            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, it->second, "No such nick/channel");
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), it->second, "No such nick/channel");
             continue;
         }
-        if (!targetClient->isInChannel(it->second)){
-            reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, it->first, "They aren't on that channel");
+        if (!targetClient->isInChannel(it->first)){
+            reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, client.getNickname(), it->first, "They aren't on that channel");
             continue;
         }
         string  message = params.size() >= 3 ? params[2] : it->second;
