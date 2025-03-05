@@ -32,7 +32,6 @@ private:
     string      _outputBuffer;
 
     e_client_state _state;
-    bool    _op;
     string  _nickname;
     string  _username;
     string  _realname;
@@ -50,7 +49,6 @@ public:
     void    sendMessage(const string& message, const string& sender);
 
     // Predicates, getters, setters
-    bool    isOperator() const ;
     bool    isAuthenticated() const;
     bool    isConnected() const;
     bool    isInChannel(const string& channel) const;

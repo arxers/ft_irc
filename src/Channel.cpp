@@ -36,7 +36,7 @@ bool    Channel::hasClient(const string& nickname) const {
     return (false);
 }
 
-bool    Channel::isClientOp(Client& client) const {
+bool    Channel::isClientOp(const Client& client) const {
     return (this->_operators.find(client.getSocket()) != this->_operators.end());
 }
 
@@ -139,6 +139,24 @@ void    Channel::setUserLimit(int userLimit) {
 void    Channel::setKey(const string& key) {
     this->_key = key;
 }
+
+string Channel::getNamesList() const {
+    string namesList;
+
+    for (map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        Client& client = *it->second;
+        string name = client.getNickname();
+        if (this->isClientOp(client))
+            name = "@" + name;
+        namesList += name + " ";
+    }
+
+    if (!namesList.empty())
+        namesList.resize(namesList.size() - 1);
+
+    return namesList;
+}
+
 
 const string& Channel::getName() const{
     return (this->_name);

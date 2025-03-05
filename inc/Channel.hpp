@@ -29,7 +29,7 @@ public:
     bool    isTopicLocked() const;
     bool    isClientInvited(Client& client) const;
     bool    hasClient(const string& nickname) const;
-    bool    isClientOp(Client& client) const;
+    bool    isClientOp(const Client& client) const;
     bool    hasChannelKey() const;
     bool    hasUserLimit() const;
 
@@ -50,6 +50,7 @@ public:
     void    setUserLimit(int userLimit);
     void    setKey(const string& key);
 
+    string          getNamesList() const;
     const string&   getName() const;
     const string&   getKey() const;
     const string&   getTopic() const;

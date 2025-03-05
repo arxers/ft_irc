@@ -21,10 +21,6 @@ void    Client::sendMessage(const string& message, const string& sender) {
 
 // Predicates, getters, setters
 
-bool    Client::isOperator() const {
-    return (this->_op == true);
-}
-
 bool    Client::isAuthenticated() const {
     return (this->_state >= AUTHENTICATED);
 }
@@ -121,7 +117,6 @@ Client::Client(int socketFd, struct sockaddr_in addr) :
 _socketFd(socketFd),
 _addr(addr),
 _state(CONNECTED),
-_op(false),
 _nickname("*"),
 _ip(inet_ntoa(addr.sin_addr)),
 _lastActiveTime(time(NULL)),
@@ -143,7 +138,6 @@ Client& Client::operator=(const Client& rhs) {
         this->_inputBuffer = rhs._inputBuffer;
         this->_outputBuffer = rhs._outputBuffer;
         this->_state = rhs._state;
-        this->_op = rhs._op;
         this->_nickname = rhs._nickname;
         this->_username = rhs._username;
         this->_realname = rhs._realname;

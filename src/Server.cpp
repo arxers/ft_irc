@@ -255,19 +255,25 @@ string  Server::_join(Client& client, const vector<string>& params) {
             continue ;
         } //if channel already exists
         if (this->_channels.find(targetChannelName) != this->_channels.end()) {
-            int result = this->_channels[targetChannelName].addClient(client, channelKeyMap[i].second);
+            Channel& channel = this->_channels[targetChannelName];
+            int result = channel.addClient(client, channelKeyMap[i].second);
             if (result == ERR_INVITEONLYCHAN)
                 reply += Numerics::formatMessage(this->_name, ERR_INVITEONLYCHAN, client.getNickname(), targetChannelName, "Cannot join channel (+i)");
             else if (result == ERR_BADCHANNELKEY)
                 reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), targetChannelName, "Cannot join channel (+k)");
             else if (result == ERR_CHANNELISFULL)
                 reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), targetChannelName, "Cannot join channel (+l)");
-            else if (result == RPL_SUCCESS)
-                this->_channels[targetChannelName].broadcastMessage(":" + client.getPrefix() + " JOIN " + targetChannelName);
+            else if (result == RPL_SUCCESS) {
+                channel.broadcastMessage(":" + client.getPrefix() + " JOIN " + targetChannelName);
+                reply += Numerics::formatMessage(this->_name, RPL_NAMREPLY, client.getNickname(), "@ " + targetChannelName, channel.getNamesList());
+                reply += Numerics::formatMessage(this->_name, RPL_ENDOFNAMES, client.getNickname(), targetChannelName, "End of NAMES list");
+            }
 
         } else { //else create channel
             Channel newChannel(targetChannelName, client, this->_pendingInvites[targetChannelName]);
             this->_pendingInvites.erase(targetChannelName);
+            reply += Numerics::formatMessage(this->_name, RPL_NAMREPLY, client.getNickname(), "@ " + targetChannelName, newChannel.getNamesList());
+            reply += Numerics::formatMessage(this->_name, RPL_ENDOFNAMES, client.getNickname(), targetChannelName, "End of NAMES list");
             this->_channels[targetChannelName] = newChannel;
             this->_channels[targetChannelName].broadcastMessage(":" + client.getPrefix() + " JOIN " + targetChannelName);
         }
