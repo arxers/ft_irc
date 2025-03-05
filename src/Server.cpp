@@ -303,28 +303,6 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
     targetClient->sendMessage(params[1], client.getNickname());
     return ("");
 }
-/*
-join #minishell
-:jerlim!~j@203.149.201.178 JOIN #minishell
-
-Client OP:
-KICK #minishell whoarr
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
-
-Client User:
-join #minishell
-:whoarr!~a@203.149.201.178 JOIN #minishell
-:platinum.libera.chat 353 whoarr @ #minishell :whoarr @jerlim
-:platinum.libera.chat 366 whoarr #minishell :End of /NAMES list.
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
-
-KICK #minishell whoarr :Memleaks!
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- Operator
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- User
-
-Server broadcasts the message to the clients in the room
-
- */
 
 typedef vector< pair<string, string> > StringPairs;
 
@@ -383,23 +361,6 @@ string  Server::_kick(Client& client, const vector<string>& params) {
     }
     return (reply);
 }
-        
-        // <kicker>
-        // <prefix><~><username>@<ip_addr>     KICK <channel> <nick>         :<nick of kicker | kick msg>
-        // libera
-        // :usernick!~usernick@203.149.201.178 KICK #heyminishell liberaTest :liberaTest           
-        
-        // ours
-        // :usernick                           KICK #test123                 :usernick
-        // Check if client is op in the desired channel?
-
-            // forcefully part target user
-
-
-        // :jerlim!~j@203.149.201.178 KICK #hello jerlim :jerlim
-    // <prefix><~ indicates non identified user by ident><username>@<ip_addr> KICK <channel> <nick> :<nick of kicker | kick msg>
-    //cout << "KICK" + " #channelA, #channelB " + "nickname"
-    
     
 string  Server::_mode(Client& client, const vector<string>& params) {
     if (params.size() < 1)
