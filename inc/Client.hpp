@@ -46,6 +46,7 @@ public:
     void    addChannel(Channel& channel);
     void    removeChannel(const string& channel);
     void    sendMessage(const string& message, const string& sender);
+    void    disconnectFromAllChannels();
 
     // Predicates, getters, setters
     bool    isOperator() const ;

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <utility>
 #include <iostream>
 #include <sstream>
@@ -31,6 +32,7 @@ using std::map;
 using std::string;
 using std::vector;
 using std::pair;
+using std::set;
 using std::cout;
 using std::cerr;
 
@@ -66,7 +68,9 @@ private:
     int     _clientCount;
 
     vector<pollfd>          _pollFds;
-    vector<int>             _disconnecting;
+    set<int>                _disconnecting;
+    set<string>             _emptyChannels;
+
     map<int, Client>        _clients;
     map<string, Channel>    _channels;
     map<string, e_command>  _commands;

@@ -93,7 +93,7 @@ void    Server::_handleClient(int clientFd) {
 
     receivedBytes = recv(clientFd, buf, sizeof(buf), 0);
     if (receivedBytes == 0) {
-        this->_disconnecting.push_back(clientFd);
+        this->_disconnecting.insert(clientFd);
         return ;
     }
 
@@ -138,7 +138,7 @@ string  Server::_pass(Client& client, const vector<string>& params) {
         client.setState(AUTHENTICATED);
         return ("");
     }
-    this->_disconnecting.push_back(client.getSocket());
+    this->_disconnecting.insert(client.getSocket());
     string  reply;
     reply += Numerics::formatMessage(this->_name, ERR_PASSWDMISMATCH, client.getNickname(), "Password incorrect");
     reply += Numerics::formatDisconnectMessage(client, "Incorrect Password");
@@ -297,7 +297,7 @@ string  Server::_part(Client& client, const vector<string>& params) {
         channel.broadcastMessage(":" + client.getPrefix() + " PART " + channel.getName());
         channel.removeClient(client);
         if (channel.isEmpty())
-            this->_channels.erase(*channelName);
+            this->_emptyChannels.insert(channel.getName());
     }
     return (reply);
 }
@@ -384,7 +384,7 @@ string  Server::_kick(Client& client, const vector<string>& params) {
         channel.broadcastMessage(formattedMessage);
         channel.removeClient(*targetClient);
         if (channel.isEmpty())
-            this->_channels.erase(channel.getName());
+            this->_emptyChannels.insert(channel.getName());
     }
     return (reply);
 }
@@ -574,7 +574,7 @@ string Server::_quit(Client& client, const vector<string>& params) {
     (void)client;
     (void)params;
 
-    this->_disconnecting.push_back(client.getSocket());
+    this->_disconnecting.insert(client.getSocket());
     return (Numerics::formatDisconnectMessage(client, "Client Quit"));
 }
 
@@ -660,7 +660,7 @@ void    Server::start() {
             if (client.isPinged() && client.getTimeSinceLastPing() >= PING_TIMEOUT) {
                 string& buffer = it->second.getOutputBuffer();
                 buffer += Numerics::formatDisconnectMessage(client, "Ping timeout: " + toString(PING_TIMEOUT) + "seconds");
-                this->_disconnecting.push_back(it->first);
+                this->_disconnecting.insert(it->first);
             }
         }
 
@@ -678,9 +678,17 @@ void    Server::start() {
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
             _flushClientBuffer(it->second);
 
-        for (vector<int>::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
-            _removeClient(*it);
-        this->_disconnecting.clear();
+        if (!this->_disconnecting.empty()) {
+            for (set<int>::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
+                _removeClient(*it);
+            this->_disconnecting.clear();
+        }
+
+        if (!this->_emptyChannels.empty()) {
+            for (set<string>::iterator it = this->_emptyChannels.begin(); it != this->_emptyChannels.end(); ++it)
+                this->_channels.erase(*it);
+            this->_disconnecting.clear();
+        }
     }
     cout << "Server shutting down...\n";
 }
