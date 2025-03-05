@@ -25,7 +25,7 @@ bool    Channel::isClientInvited(Client& client) const {
     return (this->_invitees.find(client.getSocket()) != this->_invitees.end());
 }
 
-bool    Channel::isClientInChannel(const string& nickname) const {
+bool    Channel::hasClient(const string& nickname) const {
     for (map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
         if (it->second->getNickname() == nickname)
             return (true);
@@ -111,6 +111,10 @@ void    Channel::setTopicLock(bool topicLock) {
     this->_topicLock = topicLock;
 }
 
+void    Channel::setTopic(const string& topic) {
+    this->_topic = topic;
+}
+
 void    Channel::setUserLimit(int userLimit) {
     this->_userLimit = userLimit;
 }
@@ -126,6 +130,11 @@ const string& Channel::getName() const{
 const string& Channel::getKey() const{
     return (this->_key);
 }
+
+const string& Channel::getTopic() const {
+    return (this->_topic);
+}
+
 
 int Channel::getUserLimit() const {
     return (this->_userLimit);

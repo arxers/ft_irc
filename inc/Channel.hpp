@@ -21,12 +21,13 @@ private:
     int                 _userLimit;     // l
     int                 _userCount;     // l
     string              _key;           // k
+    string              _topic;
 
 public:
     bool    isInviteOnly() const;
     bool    isTopicLocked() const;
     bool    isClientInvited(Client& client) const;
-    bool    isClientInChannel(const string& nickname) const;
+    bool    hasClient(const string& nickname) const;
     bool    isClientOp(Client& client) const;
     bool    hasChannelKey() const;
     bool    hasUserLimit() const;
@@ -44,11 +45,13 @@ public:
 
     void    setInviteOnly(bool inviteOnly);
     void    setTopicLock(bool topicLock);
+    void    setTopic(const string& topic);
     void    setUserLimit(int userLimit);
     void    setKey(const string& key);
 
     const string&   getName() const;
     const string&   getKey() const;
+    const string&   getTopic() const;
     int             getUserLimit() const;
     Client*         getClient(const string& nickname);
 

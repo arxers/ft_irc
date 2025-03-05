@@ -148,7 +148,14 @@ string  Server::_pass(Client& client, const vector<string>& params) {
 Client* Server::_getClientByNickname(const string& nickname) {
     for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
         if (it->second.getNickname() == nickname)
-            return &(it->second);
+            return (&it->second);
+    return NULL;
+}
+
+Channel* Server::_getChannelByName(const string& channel) {
+    channelmap_t::iterator it = this->_channels.find(channel);
+    if (it != this->_channels.end())
+        return (&it->second);
     return NULL;
 }
 
@@ -404,6 +411,34 @@ string  Server::_invite(Client& client, const vector<string>& params) {
     return "";
 }
 
+string  Server::_topic(Client& client, const vector<string>& params) {
+    if (params.size() < 1)
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, "MODE", client.getNickname(), "Not enough parameters"));
+    string  targetChannelName = params[0];
+    if (!this->_hasChannel(targetChannelName))
+        return (Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), targetChannelName, "No such channel"));
+    Channel& targetChannel = *this->_getChannelByName(targetChannelName);
+    if (params.size() == 1) {
+        string  topic = targetChannel.getTopic();
+        if (topic.empty())
+            return (Numerics::formatMessage(this->_name, RPL_NOTOPIC, client.getNickname(), targetChannelName, "No topic is set"));
+        return (Numerics::formatMessage(this->_name, RPL_TOPIC, client.getNickname(), targetChannelName, targetChannel.getTopic()));
+    }
+    if (!targetChannel.hasClient(client.getNickname()))
+        return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel"));
+    if (targetChannel.isTopicLocked()) 
+        if (!targetChannel.isClientOp(client))
+            return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
+    if (params[1].empty())
+        targetChannel.setTopic("");
+        return ("");
+    targetChannel.setTopic(params[1]);
+    }
+
+    string  topic = params[1];
+    if (topic.empty())
+}
+
 string  Server::_mode(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, "MODE", client.getNickname(), "Not enough parameters"));
@@ -487,7 +522,7 @@ string  Server::_mode(Client& client, const vector<string>& params) {
                 channel.setKey("");
         // Add or remove operator
         } else if (j <= 3 && (modes[i] == "+o" || modes[i] == "-o")) {
-            if (!channel.isClientInChannel(modeParams[j])) {
+            if (!channel.hasClient(modeParams[j])) {
                 reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, client.getNickname(), modeParams[j], "They aren't on that channel");
                 j++;
                 continue ;
@@ -565,7 +600,7 @@ string Server::_generateResponse(Client& client, Message message) {
         case PRIVMSG:   return (_privMsg(client, params));
         case KICK:      return (_kick(client, params));
         case INVITE:    return (_invite(client, params));
-        case TOPIC:     return ("TOPIC\n");
+        case TOPIC:     return (_topic(client, params));
         case MODE:      return (_mode(client, params));
         case PING:      return (_ping(client, params));
         case PONG:      return (_pong(client, params));
