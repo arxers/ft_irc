@@ -314,28 +314,6 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
     targetClient->sendMessage(params[1], client.getNickname());
     return ("");
 }
-/*
-join #minishell
-:jerlim!~j@203.149.201.178 JOIN #minishell
-
-Client OP:
-KICK #minishell whoarr
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
-
-Client User:
-join #minishell
-:whoarr!~a@203.149.201.178 JOIN #minishell
-:platinum.libera.chat 353 whoarr @ #minishell :whoarr @jerlim
-:platinum.libera.chat 366 whoarr #minishell :End of /NAMES list.
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :whoarr
-
-KICK #minishell whoarr :Memleaks!
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- Operator
-:jerlim!~j@203.149.201.178 KICK #minishell whoarr :Memleaks! <-- User
-
-Server broadcasts the message to the clients in the room
-
- */
 
 typedef vector< pair<string, string> > StringPairs;
 
@@ -372,45 +350,29 @@ string  Server::_kick(Client& client, const vector<string>& params) {
         }            
         Channel& channel = this->_channels.find(it->first)->second;
         if (!client.isInChannel(it->first)) {
-            reply += Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel");
+            reply += Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), it->first, "You're not on that channel");
             continue;
         }
         if (!channel.isClientOp(client)) {
-            reply += Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, it->first, "You're not channel operator");
+            reply += Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), it->first, "You're not channel operator");
             continue;
         }
         Client* targetClient = this->_getClientByNickname(it->second);
         if (targetClient == NULL) {
-            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, it->second, "No such nick/channel");
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), it->second, "No such nick/channel");
             continue;
         }
         if (!targetClient->isInChannel(it->first)){
-            reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, it->first, "They aren't on that channel");
+            reply += Numerics::formatMessage(this->_name, ERR_USERNOTINCHANNEL, client.getNickname(), it->first, "They aren't on that channel");
             continue;
         }
         string  message = params.size() >= 3 ? params[2] : it->second;
-        channel.broadcastMessage(message, "KICK", it->second);
+        string formattedMessage = ":" + client.getNickname() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message + "\r\n";
+        channel.broadcastMessage(formattedMessage);
         channel.removeClient(*targetClient);
     }
     return (reply);
 }
-        
-        // <kicker>
-        // <prefix><~><username>@<ip_addr>     KICK <channel> <nick>         :<nick of kicker | kick msg>
-        // libera
-        // :usernick!~usernick@203.149.201.178 KICK #heyminishell liberaTest :liberaTest           
-        
-        // ours
-        // :usernick                           KICK #test123                 :usernick
-        // Check if client is op in the desired channel?
-
-            // forcefully part target user
-
-
-        // :jerlim!~j@203.149.201.178 KICK #hello jerlim :jerlim
-    // <prefix><~ indicates non identified user by ident><username>@<ip_addr> KICK <channel> <nick> :<nick of kicker | kick msg>
-    //cout << "KICK" + " #channelA, #channelB " + "nickname"
-    
 
 string  Server::_invite(Client& client, const vector<string>& params) {
     if (params.size() < 2)

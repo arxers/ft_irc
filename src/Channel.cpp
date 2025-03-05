@@ -96,6 +96,13 @@ void    Channel::broadcastMessage(const string& message, const string& command, 
     }
 }
 
+void    Channel::broadcastMessage(const string& message) {
+    for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+        string& clientBuffer = it->second->getOutputBuffer();
+        clientBuffer += message;
+    }
+}
+
 void    Channel::setInviteOnly(bool inviteOnly){
     this->_inviteOnly = inviteOnly;
 }
