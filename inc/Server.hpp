@@ -60,13 +60,14 @@ private:
     string  _name;
     string  _port;
     string  _password;
+    int     _clientCount;
 
-    int                     _clientCount;
     vector<pollfd>          _pollFds;
     vector<int>             _disconnecting;
     map<int, Client>        _clients;
     map<string, Channel>    _channels;
     map<string, e_command>  _commands;
+    map< string, set<int> > _pendingInvites;
 
     Server(const Server&);
     Server& operator=(const Server&);
@@ -79,7 +80,7 @@ private:
     void    _flushClientBuffer(Client& client);
     Client* _getClientByNickname(const string& nickname);
     bool    _isValidNickname(const string& nickname);
-    bool    _isChannelActive(const string& channel);
+    bool    _hasChannel(const string& channel);
 
     string  _sendWelcomeBurst(Client& client);
 
