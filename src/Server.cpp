@@ -255,14 +255,18 @@ string  Server::_join(Client& client, const vector<string>& params) {
             int result = this->_channels[targetChannelName].addClient(client, channelKeyMap[i].second);
             if (result == ERR_INVITEONLYCHAN)
                 reply += Numerics::formatMessage(this->_name, ERR_INVITEONLYCHAN, client.getNickname(), targetChannelName, "Cannot join channel (+i)");
-            if (result == ERR_BADCHANNELKEY)
+            else if (result == ERR_BADCHANNELKEY)
                 reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), targetChannelName, "Cannot join channel (+k)");
             else if (result == ERR_CHANNELISFULL)
                 reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), targetChannelName, "Cannot join channel (+l)");
+            else if (result == RPL_SUCCESS)
+                this->_channels[targetChannelName].broadcastMessage(":" + client.getPrefix() + " JOIN " + targetChannelName);
+
         } else { //else create channel
             Channel newChannel(targetChannelName, client, this->_pendingInvites[targetChannelName]);
             this->_pendingInvites.erase(targetChannelName);
             this->_channels[targetChannelName] = newChannel;
+            this->_channels[targetChannelName].broadcastMessage(":" + client.getPrefix() + " JOIN " + targetChannelName);
         }
     }
     return (reply);
@@ -290,8 +294,10 @@ string  Server::_part(Client& client, const vector<string>& params) {
             continue ;
         }
         Channel&    channel = this->_channels.find(*channelName)->second;
-        channel.broadcastMessage(message, "PART", client.getNickname());
+        channel.broadcastMessage(":" + client.getPrefix() + " PART " + channel.getName());
         channel.removeClient(client);
+        if (channel.isEmpty())
+            this->_channels.erase(*channelName);
     }
     return (reply);
 }
@@ -374,9 +380,11 @@ string  Server::_kick(Client& client, const vector<string>& params) {
             continue;
         }
         string  message = params.size() >= 3 ? params[2] : it->second;
-        string formattedMessage = ":" + client.getNickname() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message;
+        string formattedMessage = ":" + client.getPrefix() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message;
         channel.broadcastMessage(formattedMessage);
         channel.removeClient(*targetClient);
+        if (channel.isEmpty())
+            this->_channels.erase(channel.getName());
     }
     return (reply);
 }

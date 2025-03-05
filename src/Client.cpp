@@ -71,6 +71,10 @@ const string&  Client::getUsername() const {
     return (this->_username);
 }
 
+string  Client::getPrefix() const {
+    return (this->_nickname + "!~" + this->_username + "@" + inet_ntoa(this->_addr.sin_addr));
+}
+
 time_t  Client::getIdleTime() const{
     return (time(NULL) - this->_lastActiveTime);
 }
@@ -115,6 +119,7 @@ _addr(addr),
 _state(CONNECTED),
 _op(false),
 _nickname("*"),
+_ip(inet_ntoa(addr.sin_addr)),
 _lastActiveTime(time(NULL)),
 _lastPingTime(_lastActiveTime),
 _pinged(false)
@@ -138,6 +143,7 @@ Client& Client::operator=(const Client& rhs) {
         this->_nickname = rhs._nickname;
         this->_username = rhs._username;
         this->_realname = rhs._realname;
+        this->_ip = rhs._ip;
         this->_lastActiveTime = rhs._lastActiveTime;
         this->_lastPingTime = rhs._lastPingTime;
         this->_pinged = rhs._pinged;

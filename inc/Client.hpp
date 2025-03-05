@@ -34,6 +34,7 @@ private:
     string  _nickname;
     string  _username;
     string  _realname;
+    string  _ip;
 
     time_t  _lastActiveTime;
     time_t  _lastPingTime;
@@ -61,6 +62,7 @@ public:
     e_client_state  getState() const;
     const string&   getNickname() const;
     const string&   getUsername() const;
+    string          getPrefix() const;
     time_t  getIdleTime() const;
     time_t  getTimeSinceLastPing() const;
 

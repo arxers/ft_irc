@@ -13,6 +13,11 @@
 
 // public:
 
+bool    Channel::isEmpty() const {
+    std::cout << _userCount << '\n';
+    return (!this->_userCount);
+}
+
 bool    Channel::isInviteOnly() const {
     return (this->_inviteOnly);
 }
@@ -53,11 +58,13 @@ int    Channel::addClient(Client& client, const string& key) {
         return (ERR_CHANNELISFULL);
     this->_clients[client.getSocket()] = &client;
     client.addChannel(*this);
+    this->_userCount++;
     return (RPL_SUCCESS);
 }
 void    Channel::removeClient(Client& client) {
     client.removeChannel(this->_name);
     this->_clients.erase(client.getSocket());
+    this->_userCount--;
 }
 
 void    Channel::addInvitee(Client& client) {
@@ -150,21 +157,22 @@ Client* Channel::getClient(const string& nickname) {
 Channel::Channel() {}
 
 Channel::Channel(const string& channelName, Client& client, set<int> invitees) :
-_name(channelName), _invitees(invitees), _inviteOnly(false), _topicLock(false), _userLimit(0) {
+_name(channelName), _invitees(invitees), _inviteOnly(false), _topicLock(false), _userLimit(0), _userCount(0) {
     client.addChannel(*this);
     addClient(client, "");
     addOperator(client);
 }
 
 Channel::Channel(const string& channelName, Client& client) :
-_name(channelName), _inviteOnly(false), _topicLock(false), _userLimit(0) {
+_name(channelName), _inviteOnly(false), _topicLock(false), _userLimit(0), _userCount(0) {
     client.addChannel(*this);
     addClient(client, "");
     addOperator(client);
 }
 
 Channel::Channel(const Channel& rhs) {
-    *this = rhs;
+    if (this != &rhs)
+        *this = rhs;
 }
 
 Channel& Channel::operator=(const Channel& rhs) {
@@ -172,10 +180,13 @@ Channel& Channel::operator=(const Channel& rhs) {
         this->_name = rhs._name;
         this->_clients = rhs._clients;
         this->_operators = rhs._operators;
+        this->_invitees = rhs._invitees;
         this->_inviteOnly = rhs._inviteOnly;
         this->_topicLock = rhs._topicLock;
         this->_userLimit = rhs._userLimit;
+        this->_userCount = rhs._userCount;
         this->_key = rhs._key;
+        this->_topic = rhs._topic;
     }
     return (*this);
 }

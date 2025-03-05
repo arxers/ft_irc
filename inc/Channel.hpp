@@ -24,6 +24,7 @@ private:
     string              _topic;
 
 public:
+    bool    isEmpty() const;
     bool    isInviteOnly() const;
     bool    isTopicLocked() const;
     bool    isClientInvited(Client& client) const;
