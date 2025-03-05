@@ -133,7 +133,7 @@ string  Server::_pass(Client& client, const vector<string>& params) {
     if (client.isAuthenticated())
         return (Numerics::formatMessage(this->_name, ERR_ALREADYREGISTERED, client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 1)
-        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, "PASS", client.getNickname(), "Not enough parameters"));
     if (params[0] == this->_password) {
         client.setState(AUTHENTICATED);
         return ("");
@@ -175,7 +175,7 @@ bool    Server::_isValidNickname(const string& nickname) {
     return (true);
 }
 
-bool    Server::_isChannelActive(const string& channel) {
+bool    Server::_hasChannel(const string& channel) {
     if (this->_channels.find(channel) != this->_channels.end())
         return (true);
     return (false);
@@ -202,7 +202,7 @@ string  Server::_nick(Client& client, const vector<string>& params) {
 
 string  Server::_user(Client& client, const vector<string>& params) {
     if (params.size() < 4)
-        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "USER", "Not enough parameters"));
     client.setUsername(params[0]);
     client.setRealname(params[3]);
     if (client.getState() == AUTHENTICATED && client.getNickname() != "*")
@@ -224,7 +224,7 @@ bool    isValidChannelName(const std::string& channel) {
 
 string  Server::_join(Client& client, const vector<string>& params) {
     if (params.empty() || params.size() < 1)
-        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "JOIN", "Not enough parameters"));
 
     // make channel map from input params
     std::istringstream  issChannels(params[0]);
@@ -239,21 +239,23 @@ string  Server::_join(Client& client, const vector<string>& params) {
 
     string reply;
     for (size_t i = 0; i < channelKeyMap.size(); ++i) {
-        if (!isValidChannelName(channelKeyMap[i].first)) {
-            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), channelKeyMap[i].first, "No such channel");
+        string  targetChannelName = channelKeyMap[i].first;
+        if (!isValidChannelName(targetChannelName)) {
+            reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), targetChannelName, "No such channel");
             continue ;
         } //if channel already exists
-        if (this->_channels.find(channelKeyMap[i].first) != this->_channels.end()) {
-            int result = this->_channels[channelKeyMap[i].first].addClient(client, channelKeyMap[i].second);
+        if (this->_channels.find(targetChannelName) != this->_channels.end()) {
+            int result = this->_channels[targetChannelName].addClient(client, channelKeyMap[i].second);
             if (result == ERR_INVITEONLYCHAN)
-                reply += Numerics::formatMessage(this->_name, ERR_INVITEONLYCHAN, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+i)");
+                reply += Numerics::formatMessage(this->_name, ERR_INVITEONLYCHAN, client.getNickname(), targetChannelName, "Cannot join channel (+i)");
             if (result == ERR_BADCHANNELKEY)
-                reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+k)");
+                reply += Numerics::formatMessage(this->_name, ERR_BADCHANNELKEY, client.getNickname(), targetChannelName, "Cannot join channel (+k)");
             else if (result == ERR_CHANNELISFULL)
-                reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), channelKeyMap[i].first, "Cannot join channel (+l)");
+                reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), targetChannelName, "Cannot join channel (+l)");
         } else { //else create channel
-            Channel newChannel(channelKeyMap[i].first, client);
-            this->_channels[channelKeyMap[i].first] = newChannel;
+            Channel newChannel(targetChannelName, client, this->_pendingInvites[targetChannelName]);
+            this->_pendingInvites.erase(targetChannelName);
+            this->_channels[targetChannelName] = newChannel;
         }
     }
     return (reply);
@@ -261,7 +263,7 @@ string  Server::_join(Client& client, const vector<string>& params) {
 
 string  Server::_part(Client& client, const vector<string>& params) {
     if (params.size() < 1)
-        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "PART", "Not enough parameters"));
 
     std::istringstream  issChannels(params[0]);
     string  channelStr;
@@ -342,7 +344,7 @@ string  Server::_kick(Client& client, const vector<string>& params) {
     string reply;
     // For channel in list of channels
     for (StringPairs::iterator it = channelUserPairs.begin(); it != channelUserPairs.end(); ++it) {
-        if (!_isChannelActive(it->first)) {
+        if (!_hasChannel(it->first)) {
             reply += Numerics::formatMessage(this->_name, ERR_NOSUCHCHANNEL, client.getNickname(), it->first, "No such channel");
             continue;
         }            
@@ -373,19 +375,43 @@ string  Server::_kick(Client& client, const vector<string>& params) {
 }
 
 string  Server::_invite(Client& client, const vector<string>& params) {
-    (void)client;
-    (void)params;
+    if (params.size() < 2)
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "INVITE", "Not enough parameters"));
+
+    string  targetNickname = params[0], targetChannelName = params[1];
+    Client *targetClient = this->_getClientByNickname(targetNickname);
+    if (targetClient == NULL)
+        return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), targetNickname, "No such nick/channel"));
+
+    bool hasChannel = this->_hasChannel(params[1]);
+
+    if (hasChannel) { // Channel exists
+        if (!targetClient->isInChannel(targetChannelName))
+            return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, targetNickname, targetChannelName, "You're not on that channel"));
+        Channel& targetChannel = this->_channels[targetChannelName];
+        if (targetChannel.isInviteOnly() && targetChannel.isClientOp(*targetClient))
+            return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
+        if (targetChannel.isClientInvited(*targetClient))
+            return "";
+        targetChannel.addInvitee(*targetClient);
+        targetClient->getOutputBuffer() += Numerics::formatMessage(this->_name, RPL_INVITING, targetNickname, client.getNickname());
+    } else { // Channel doesn't exist
+        if (this->_pendingInvites[targetChannelName].find(targetClient->getSocket()) != this->_pendingInvites[targetChannelName].end())
+            return "";
+        this->_pendingInvites[targetChannelName].insert(targetClient->getSocket());
+        targetClient->getOutputBuffer() += Numerics::formatMessage(this->_name, RPL_INVITING, targetNickname, client.getNickname());
+    }
     return "";
 }
 
 string  Server::_mode(Client& client, const vector<string>& params) {
     if (params.size() < 1)
-        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "Not enough parameters"));
+        return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, "MODE", client.getNickname(), "Not enough parameters"));
 
     if (params[0][0] != '#')
         return (Numerics::formatMessage(this->_name, ERR_UMODEUNKNOWNFLAG, client.getNickname(), "User modes are not supported"));
 
-    if (!_isChannelActive(params[0]))
+    if (!_hasChannel(params[0]))
         return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), params[0], "No such nick/channel"));
     
     if (!client.isInChannel(params[0]))

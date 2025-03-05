@@ -140,6 +140,13 @@ Client* Channel::getClient(const string& nickname) {
 
 Channel::Channel() {}
 
+Channel::Channel(const string& channelName, Client& client, set<int> invitees) :
+_name(channelName), _invitees(invitees), _inviteOnly(false), _topicLock(false), _userLimit(0) {
+    client.addChannel(*this);
+    addClient(client, "");
+    addOperator(client);
+}
+
 Channel::Channel(const string& channelName, Client& client) :
 _name(channelName), _inviteOnly(false), _topicLock(false), _userLimit(0) {
     client.addChannel(*this);
