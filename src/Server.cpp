@@ -556,8 +556,8 @@ string  Server::_mode(Client& client, const vector<string>& params) {
     vector<string>  modes, modeParams;
     for (size_t  i = 1; i < params.size(); ++i) {
         string  mode = params[i];
-        if (mode[0] == '+') {
-            if (mode == "+k" || mode == "+o" || mode == "+l") {
+        if (mode[0] == '+' || mode[0] == '-') {
+            if (mode == "+k" || mode == "+o" || mode == "-o" || mode == "+l") {
                 if (i + 1 < params.size() && params[i + 1][0] != '+' && params[i + 1][0] != '-') {
                     modes.push_back(mode);
                     modeParams.push_back(params[++i]);
@@ -624,7 +624,7 @@ string  Server::_mode(Client& client, const vector<string>& params) {
             }
             else if (modes[i] == "-o") {
                 channel.removeOperator(targetClient);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -o" + targetClient.getNickname(), client.getSocket(), false);
+                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -o " + targetClient.getNickname(), client.getSocket(), false);
             }
             j++;
         // Set or remove channel user limit
