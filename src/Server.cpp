@@ -558,7 +558,7 @@ string  Server::_mode(Client& client, const vector<string>& params) {
     vector<string>  modes, modeParams;
     for (size_t  i = 1; i < params.size(); ++i) {
         string  mode = params[i];
-        if (mode[0] == '+' || mode[0] == '-') {
+        if (mode[0] == '+' || mode == "-o") {
             if (mode == "+k" || mode == "+o" || mode == "-o" || mode == "+l") {
                 if (i + 1 < params.size() && params[i + 1][0] != '+' && params[i + 1][0] != '-') {
                     modes.push_back(mode);
@@ -605,10 +605,12 @@ string  Server::_mode(Client& client, const vector<string>& params) {
                     ++j;
                     continue ;
                 } else {
-                    channel.setKey(modeParams[j++]);
-                    channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " +k", client.getSocket(), false);
+                    channel.setKey(modeParams[j]);
+                    channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " +k", client.getSocket(), true);
+                    client.getOutputBuffer() += Numerics::formatMessage(this->_name, RPL_CHANNELMODEIS, client.getNickname(), channel.getName() + " +k " + modeParams[j]);
+                    ++j;
                 }
-            } else {
+            } else if (modes[i] == "-k") {
                 channel.setKey("");
                 channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " -k", client.getSocket(), false);
             }
