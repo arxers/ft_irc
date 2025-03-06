@@ -227,8 +227,10 @@ string  Server::_nick(Client& client, const vector<string>& params) {
     if (_getClientByNickname(params[0]))
         return (Numerics::formatMessage(this->_name, ERR_NICKNAMEINUSE, client.getNickname(), params[0], "Nickname is already in use"));
     string reply;
-    reply += ":" + client.getPrefix() + " NICK :" + params[0] + CRLF;
-    this->_broadcastToClientChannels(client, "NICK :" + params[0], true);
+    if (client.getState() == REGISTERED) {
+        reply += ":" + client.getPrefix() + " NICK :" + params[0] + CRLF;
+        this->_broadcastToClientChannels(client, "NICK :" + params[0], true);
+    }
     client.setNickname(params[0]);
     if (client.getState() == AUTHENTICATED && client.getUsername() != "")
         reply+= _sendWelcomeBurst(client);
