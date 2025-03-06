@@ -237,9 +237,19 @@ string  Server::_nick(Client& client, const vector<string>& params) {
     return (reply);
 }
 
+static bool isAlnum(const string& str) {
+    return (str.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890") == string::npos);
+}
+
 string  Server::_user(Client& client, const vector<string>& params) {
+    if (client.getState() == REGISTERED)
+        return (Numerics::formatMessage(this->_name, ERR_ALREADYREGISTERED, client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 4)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, client.getNickname(), "USER", "Not enough parameters"));
+    if (!isAlnum(params[0])) {
+        this->_disconnecting.push_back(std::make_pair(client.getSocket(), "Invalid username [" + params[0] + "]"));
+        return (":" + this->_name + " NOTICE " + client.getNickname() + " :Your username is invalid. Please make sure that your username contains only alphanumeric characters." + CRLF);
+    }
     client.setUsername(params[0]);
     client.setRealname(params[3]);
     if (client.getState() == AUTHENTICATED && client.getNickname() != "*")
