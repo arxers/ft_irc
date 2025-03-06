@@ -623,7 +623,9 @@ string  Server::_mode(Client& client, const vector<string>& params) {
                     reply += Numerics::formatMessage(this->_name, ERR_UNKNOWNMODE, client.getNickname(), "Invalid parameter for mode +l");
                     continue ;
                 }
-                int n = std::atoi(modeParams[j++].c_str());
+                long long n = std::atoi(modeParams[j++].c_str());
+                if (n > 2147483647)
+                    n = 2147483647;
                 channel.setUserLimit(n);
                 channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +l " + toString(n), client.getSocket(), false);
             } else if (modes[i] == "-l") {
