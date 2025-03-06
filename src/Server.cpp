@@ -706,7 +706,7 @@ string Server::_generateResponse(Client& client, Message message) {
 }
 
 void    Server::start() {
-    if (this->_name == "" || this->_port == "" || this->_port == "")
+    if (this->_name == "" || this->_port == "")
         throw (std::runtime_error("start: Server not initialized"));
 
     this->_listeningSocket = _createSocket();
