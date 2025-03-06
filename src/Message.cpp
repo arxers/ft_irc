@@ -32,7 +32,7 @@ Message::Message(const string& msg) {
 string Message::getPrefix() const { return (this->_prefix); }
 string Message::getCommand() const { return (this->_command); }
 vector<string> Message::getParams() const { return (this->_params); }
-bool    Message::isValid() const { return (!this->_command.empty()); }
+// bool    Message::isValid() const { return (!this->_command.empty()); }
 
 Message::Message() {}
 

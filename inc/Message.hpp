@@ -18,7 +18,7 @@ public:
     string          getPrefix() const;
     string          getCommand() const;
     vector<string>  getParams() const;
-    bool            isValid() const;
+    // bool            isValid() const;
 
     Message(const string&);
     Message(const Message&);

@@ -90,10 +90,8 @@ private:
     void        _removeClient(int socketFd, const string& message);
     void        _handleClient(int clientFd);
     string      _generateResponse(Client& client, Message message);
-    void        _flushClientBuffer(Client& client);
     Client*     _getClientByNickname(const string& nickname);
     Channel*    _getChannelByName(const string& channel);
-    bool        _isValidNickname(const string& nickname);
     bool        _hasChannel(const string& channel);
 
     string  _sendWelcomeBurst(Client& client);
@@ -101,7 +99,7 @@ private:
     
 
     // Commands
-    string  _cap(const vector<string>& params);
+    string  _cap(const vector<string>& params) const;
     string  _pass(Client& client, const vector<string>& params);
     string  _nick(Client& client, const vector<string>& params);
     string  _user(Client& client, const vector<string>& params);
@@ -112,13 +110,13 @@ private:
     string  _invite(Client& client, const vector<string>& params);
     string  _topic(Client& client, const vector<string>& params);
     string  _mode(Client& client, const vector<string>& params);
-    string  _ping(Client& client, const vector<string>& params);
+    string  _ping(Client& client, const vector<string>& params) const;
     string  _pong(Client& client, const vector<string>& params); 
     string  _quit(Client& client, const vector<string>& params);
     
 public:
     void    start();
-    void    init(string name, string port, string password);
+    void    init(const string& name, const string& port, const string& password);
 
     Server();
     ~Server();

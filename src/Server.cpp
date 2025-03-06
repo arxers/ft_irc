@@ -1,13 +1,62 @@
 #include "../inc/Server.hpp"
 
+static bool isValidPort(int n) {
+    return (n >= 0 && n <= 65535);
+}
+
 static bool isNumber(const string& str) {
     return (str.find_first_not_of("1234567890") == string::npos);
+}
+
+static bool isAlnum(const string& str) {
+    return (str.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890") == string::npos);
+}
+
+static string  strToUpper(string s) {
+    for (string::iterator it = s.begin(); it != s.end(); ++it)
+        *it = (std::toupper(*it));
+    return (s);
 }
 
 static string toString(int num) {
     std::ostringstream oss;
     oss << num;
     return oss.str();
+}
+
+static bool isValidNickname(const string& nickname) {
+    if (nickname.length() > 9)
+        return (false);
+
+    string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    string digits = "1234567890";
+    string special = "[]\\_^{}`";
+
+    if (letters.find(nickname[0]) == string::npos &&
+        special.find(nickname[0]) == string::npos)
+        return (false);
+
+    for (size_t i = 1; i < nickname.length(); ++i) {
+        if (letters.find(nickname[i]) == string::npos &&
+            special.find(nickname[i]) == string::npos &&
+            digits.find(nickname[i]) == string::npos &&
+            nickname[i] != '-')
+            return (false);
+    }
+
+    return (true);
+}
+
+static void _flushClientBuffer(Client& client) {
+    int fd = client.getSocket();
+    string& buf = client.getOutputBuffer();
+    size_t  size = buf.size();
+
+    if (!size)
+        return ;
+    cout << ">" << client.getSocket() << ": " << buf;
+    send(fd, buf.c_str(), size, MSG_NOSIGNAL);
+    buf.clear();
 }
 
 int Server::_createSocket() {
@@ -55,7 +104,7 @@ void    Server::_addClient() {
     sockaddr_in clientAddr;
     socklen_t   clientLen = sizeof(clientAddr);
 
-    int clientFd = accept(this->_listeningSocket, (struct sockaddr*)&clientAddr, &clientLen);
+    int clientFd = accept(this->_listeningSocket, reinterpret_cast<struct sockaddr*>(&clientAddr), &clientLen);
     if (clientFd == -1)
         return ;
 
@@ -107,7 +156,7 @@ void    Server::_handleClient(int clientFd) {
     string &inputBuffer = client.getInputBuffer();
     inputBuffer.append(buf, receivedBytes);
     if (inputBuffer.length() > MAX_MSG_LEN) {
-        inputBuffer = inputBuffer.substr(0, MAX_MSG_LEN - 2);
+        inputBuffer.resize(MAX_MSG_LEN - 2);
         inputBuffer += "\r\n";
     }
     
@@ -121,20 +170,14 @@ void    Server::_handleClient(int clientFd) {
     }
 }
 
-static string  strToUpper(string s) {
-    for (string::iterator it = s.begin(); it != s.end(); ++it)
-        *it = (std::toupper(*it));
-    return (s);
-}
-
-string Server::_cap(const vector<string>& params) {
+string Server::_cap(const vector<string>& params) const {
     if (params.empty() || params[0] != "LS")
         return ("");
     return (":" + this->_name + " " + "CAP * LS :" + CRLF);
 }
 
 string  Server::_pass(Client& client, const vector<string>& params) {
-    if (client.isAuthenticated())
+    if (client.getState() == AUTHENTICATED)
         return (Numerics::formatMessage(this->_name, ERR_ALREADYREGISTERED, client.getNickname(), "Unauthorized command (already registered)"));
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NEEDMOREPARAMS, "PASS", client.getNickname(), "Not enough parameters"));
@@ -160,29 +203,6 @@ Channel* Server::_getChannelByName(const string& channel) {
     if (it != this->_channels.end())
         return (&it->second);
     return NULL;
-}
-
-bool    Server::_isValidNickname(const string& nickname) {
-    if (nickname.length() > 9)
-        return (false);
-
-    string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    string digits = "1234567890";
-    string special = "[]\\_^{}`";
-
-    if (letters.find(nickname[0]) == string::npos &&
-        special.find(nickname[0]) == string::npos)
-        return (false);
-
-    for (size_t i = 1; i < nickname.length(); ++i) {
-        if (letters.find(nickname[i]) == string::npos &&
-            special.find(nickname[i]) == string::npos &&
-            digits.find(nickname[i]) == string::npos &&
-            nickname[i] != '-')
-            return (false);
-    }
-
-    return (true);
 }
 
 bool    Server::_hasChannel(const string& channel) {
@@ -222,7 +242,7 @@ void Server::_broadcastToClientChannels(Client& client, const string& message, b
 string  Server::_nick(Client& client, const vector<string>& params) {
     if (params.size() < 1)
         return (Numerics::formatMessage(this->_name, ERR_NONICKNAMEGIVEN, client.getNickname(), "No nickname given"));
-    if (!_isValidNickname(params[0]))
+    if (!isValidNickname(params[0]))
         return (Numerics::formatMessage(this->_name, ERR_ERRONEUSNICKNAME, client.getNickname(), params[0], "Erroneous nickname"));
     if (_getClientByNickname(params[0]))
         return (Numerics::formatMessage(this->_name, ERR_NICKNAMEINUSE, client.getNickname(), params[0], "Nickname is already in use"));
@@ -235,10 +255,6 @@ string  Server::_nick(Client& client, const vector<string>& params) {
     if (client.getState() == AUTHENTICATED && client.getUsername() != "")
         reply+= _sendWelcomeBurst(client);
     return (reply);
-}
-
-static bool isAlnum(const string& str) {
-    return (str.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890") == string::npos);
 }
 
 string  Server::_user(Client& client, const vector<string>& params) {
@@ -328,7 +344,7 @@ string  Server::_part(Client& client, const vector<string>& params) {
     while (std::getline(issChannels, channelStr, ','))
         partingChannels.push_back(channelStr);
     
-    string  message = (params.size() > 1 ? params[1] : client.getNickname());
+    string  message = (params.size() > 1 ? " :" + params[1] : "");
     string  reply;
     for (vector<string>::iterator channelName = partingChannels.begin(); channelName != partingChannels.end(); ++channelName) {
         if (this->_channels.find(*channelName) == this->_channels.end()) {
@@ -340,11 +356,10 @@ string  Server::_part(Client& client, const vector<string>& params) {
             continue ;
         }
         Channel&    channel = this->_channels.find(*channelName)->second;
-        channel.broadcastMessage(":" + client.getPrefix() + " PART " + channel.getName(), client.getSocket(), false);
+        channel.broadcastMessage(":" + client.getPrefix() + " PART " + channel.getName() + message, client.getSocket(), false);
         channel.removeClient(client);
         if (channel.isEmpty())
             this->_channels.erase(channel.getName());
-            // this->_emptyChannels.insert(channel.getName());
     }
     return (reply);
 }
@@ -622,7 +637,7 @@ string  Server::_mode(Client& client, const vector<string>& params) {
     return (reply);
 }
 
-string Server::_ping(Client& client, const vector<string>& params) {
+string Server::_ping(Client& client, const vector<string>& params) const {
     (void)client;
     if (params.empty())
         return (":" + this->_name + " PONG " + this->_name + " :" + CRLF);
@@ -678,18 +693,6 @@ string Server::_generateResponse(Client& client, Message message) {
         case QUIT:      return (_quit(client, params));
         default: return (Numerics::formatMessage(this->_name, ERR_UNKNOWNCOMMAND, client.getNickname(), message.getCommand(), "Unknown command!"));
     }
-}
-
-void    Server::_flushClientBuffer(Client& client) {
-    int fd = client.getSocket();
-    string& buf = client.getOutputBuffer();
-    size_t  size = buf.size();
-
-    if (!size)
-        return ;
-    cout << ">" << client.getSocket() << ": " << buf;
-    send(fd, buf.c_str(), size, MSG_NOSIGNAL);
-    buf.clear();
 }
 
 void    Server::start() {
@@ -748,8 +751,8 @@ void    Server::start() {
             Client& client = this->_clients[socketFd];
             
             set<string> clientChannels = client.getChannels();
-            for (set<string>::iterator it = clientChannels.begin(); it != clientChannels.end(); ++it) {
-                Channel* channel = this->_getChannelByName(*it);
+            for (set<string>::iterator channelIt = clientChannels.begin(); channelIt != clientChannels.end(); ++channelIt) {
+                Channel* channel = this->_getChannelByName(*channelIt);
                 if (!channel)
                     continue;
                 channel->removeClient(client);
@@ -766,10 +769,6 @@ void    Server::start() {
         }
     }
     cout << "Server shutting down...\n";
-}
-
-static bool isValidPort(int n) {
-    return (n >= 0 && n <= 65535);
 }
 
 static void initCommandMap(commandmap_t& map) {
@@ -789,7 +788,7 @@ static void initCommandMap(commandmap_t& map) {
     map["QUIT"]     = QUIT;
 }
 
-void    Server::init(string name, string port, string password) {
+void    Server::init(const string& name, const string& port, const string& password) {
     if (!isNumber(port) || !isValidPort(std::atoi(this->_port.c_str())))
         throw std::invalid_argument("init: Valid ports are 0-65535");
     this->_name = name;
@@ -799,7 +798,10 @@ void    Server::init(string name, string port, string password) {
 }
 
 Server::Server() : _listeningSocket(-1), _clientCount(0) {}
-Server::Server(const Server&) {}
+Server::Server(const Server& rhs) {
+    if (this != &rhs)
+        *this = rhs;
+}
 Server& Server::operator=(const Server&) { return (*this); }
 Server::~Server() {
     if (this->_listeningSocket >= 0)

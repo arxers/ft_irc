@@ -49,8 +49,6 @@ public:
     void    sendMessage(const string& message, const string& sender);
 
     // Predicates, getters, setters
-    bool    isAuthenticated() const;
-    bool    isConnected() const;
     bool    isInChannel(const string& channel) const;
     bool    isPinged() const;
 
@@ -64,13 +62,13 @@ public:
     const string&   getUsername() const;
     string          getPrefix() const;
     set<string>     getChannels() const;
-    time_t  getIdleTime() const;
+    // time_t  getIdleTime() const;
     time_t  getTimeSinceLastPing() const;
 
     void    setState(e_client_state state);
     void    setNickname(const string& nickname);
-    void    setUsername(const string& Username);
-    void    setRealname(const string& Realname);
+    void    setUsername(const string& username);
+    void    setRealname(const string& realname);
     void    setLastActiveTime();
     void    setLastPingTime();
     void    setPinged(bool pinged);

@@ -31,12 +31,12 @@ public:
     bool    hasClient(const string& nickname) const;
     bool    isClientOp(const Client& client) const;
     bool    hasChannelKey() const;
-    bool    hasUserLimit() const;
+    // bool    hasUserLimit() const;
 
     int     addClient(Client& client, const string& key);
     void    removeClient(Client& client);
     void    addInvitee(Client& client);
-    void    removeInvitee(Client& client);
+    // void    removeInvitee(Client& client);
     void    addOperator(Client& client);
     void    removeOperator(Client& client);
 
@@ -50,7 +50,6 @@ public:
 
     string          getNamesList() const;
     const string&   getName() const;
-    const string&   getKey() const;
     const string&   getTopic() const;
     int             getUserLimit() const;
     Client*         getClient(const string& nickname);

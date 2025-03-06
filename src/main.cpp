@@ -13,12 +13,12 @@ int main(int ac, char** av) {
         return (EXIT_FAILURE);
     }
 
-    string port(av[1]);
-    string password(av[2]);
 
     signal(SIGINT, signal_handler);
     
     try {
+        string port(av[1]);
+        string password(av[2]);
         Server server;
         server.init(HOSTNAME, port, password);
         server.start();

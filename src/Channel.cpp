@@ -44,9 +44,9 @@ bool    Channel::hasChannelKey() const {
     return (!this->_key.empty());
 }
 
-bool    Channel::hasUserLimit() const {
-    return (this->_userLimit > 0);
-}
+// bool    Channel::hasUserLimit() const {
+//     return (this->_userLimit > 0);
+// }
 
 int    Channel::addClient(Client& client, const string& key) {
     if (this->_inviteOnly && !this->isClientInvited(client))
@@ -72,9 +72,9 @@ void    Channel::addInvitee(Client& client) {
     this->_invitees.insert(client.getSocket());
 }
 
-void    Channel::removeInvitee(Client& client) {
-    this->_invitees.erase(client.getSocket());
-}
+// void    Channel::removeInvitee(Client& client) {
+//     this->_invitees.erase(client.getSocket());
+// }
 
 void    Channel::addOperator(Client& client) {
     this->_operators.insert(client.getSocket());
@@ -138,14 +138,9 @@ const string& Channel::getName() const{
     return (this->_name);
 }
 
-const string& Channel::getKey() const{
-    return (this->_key);
-}
-
 const string& Channel::getTopic() const {
     return (this->_topic);
 }
-
 
 int Channel::getUserLimit() const {
     return (this->_userLimit);
@@ -158,7 +153,19 @@ Client* Channel::getClient(const string& nickname) {
     return (NULL);
 }
 
-Channel::Channel() {}
+// string              _name;
+// map<int, Client*>   _clients;
+// set<int>            _operators;     // o
+// set<int>            _invitees;      // i
+// bool                _inviteOnly;    // i
+// bool                _topicLock;     // t
+// int                 _userLimit;     // l
+// int                 _userCount;     // l
+// string              _key;           // k
+// string              _topic;
+
+Channel::Channel() :
+_inviteOnly(false), _topicLock(false), _userLimit(0), _userCount(0) {}
 
 Channel::Channel(const string& channelName, Client& client, set<int> invitees) :
 _name(channelName), _invitees(invitees), _inviteOnly(false), _topicLock(false), _userLimit(0), _userCount(0) {

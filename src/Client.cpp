@@ -21,14 +21,6 @@ void    Client::sendMessage(const string& message, const string& sender) {
 
 // Predicates, getters, setters
 
-bool    Client::isAuthenticated() const {
-    return (this->_state >= AUTHENTICATED);
-}
-
-bool    Client::isConnected() const {
-    return (this->_socketFd != -1);
-}
-
 bool    Client::isPinged() const {
     return (this->_pinged);
 }
@@ -75,9 +67,9 @@ set<string> Client::getChannels() const {
     return (this->_channels);
 }
 
-time_t  Client::getIdleTime() const{
-    return (time(NULL) - this->_lastActiveTime);
-}
+// time_t  Client::getIdleTime() const{
+//     return (time(NULL) - this->_lastActiveTime);
+// }
 
 time_t  Client::getTimeSinceLastPing() const{
     return (time(NULL) - this->_lastPingTime);
@@ -111,7 +103,25 @@ void    Client::setPinged(bool pinged) {
     this->_pinged = pinged;
 }
 
-Client::Client() {}
+// int         _socketFd;
+// sockaddr_in _addr;
+// string      _inputBuffer;
+// string      _outputBuffer;
+
+// e_client_state _state;
+// string  _nickname;
+// string  _username;
+// string  _realname;
+// string  _ip;
+
+// time_t  _lastActiveTime;
+// time_t  _lastPingTime;
+// bool    _pinged;
+
+// set<string> _channels;
+
+Client::Client() :
+_socketFd(-1), _lastActiveTime(0), _lastPingTime(0), _pinged(false) {}
 
 Client::Client(int socketFd, struct sockaddr_in addr) :
 _socketFd(socketFd),
