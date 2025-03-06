@@ -125,7 +125,7 @@ void    Server::_addClient() {
         if (this->_password.empty())
             newClient.setState(AUTHENTICATED);
         this->_clients[clientFd] = newClient;
-        struct pollfd   client_pfd = {clientFd, POLLIN | POLLOUT, 0};
+        struct pollfd   client_pfd = {clientFd, POLLIN, 0};
         this->_pollFds.push_back(client_pfd);
         cout << GREEN << newClient.getIp() <<  " connected to socket FD: "
              << clientFd << RESET << '\n';
