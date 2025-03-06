@@ -791,7 +791,10 @@ static void initCommandMap(commandmap_t& map) {
 }
 
 void    Server::init(const string& name, const string& port, const string& password) {
-    if (!isNumber(port) || !isValidPort(std::atoi(this->_port.c_str())))
+    long long portNumber = std::atoi(port.c_str());
+    if (portNumber > 2147483647)
+        portNumber = 2147483647;
+    if (!isNumber(port) || !isValidPort(portNumber))
         throw std::invalid_argument("init: Valid ports are 0-65535");
     this->_name = name;
     this->_port = port;
