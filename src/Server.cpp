@@ -790,7 +790,8 @@ Server::Server() : _listeningSocket(-1), _clientCount(0) {}
 Server::Server(const Server&) {}
 Server& Server::operator=(const Server&) { return (*this); }
 Server::~Server() {
-    close(this->_listeningSocket);
+    if (this->_listeningSocket >= 0)
+        close(this->_listeningSocket);
     for (map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         string  message = Numerics::formatDisconnectMessage(it->second, "Server shutting down");
         send(it->first, message.c_str(), message.size(), MSG_NOSIGNAL);
