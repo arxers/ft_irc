@@ -60,6 +60,7 @@ enum e_command{
     PING,
     PONG,
     QUIT,
+    UNKNOWN,
 };
 
 typedef map<string, e_command>  commandmap_t;

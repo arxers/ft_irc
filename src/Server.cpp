@@ -673,10 +673,7 @@ string Server::_generateResponse(Client& client, Message message) {
     string commandUpper = strToUpper(message.getCommand());
     commandmap_t::iterator   it = this->_commands.find(commandUpper);
 
-    if (it == this->_commands.end())
-        return (Numerics::formatMessage(this->_name, ERR_UNKNOWNCOMMAND, client.getNickname(), message.getCommand(), "Unknown command!")); 
-
-    e_command command = it->second;
+    e_command command = it != this->_commands.end() ? it->second : UNKNOWN;
     const vector<string>&   params = message.getParams();
 
     if (command == CAP)
