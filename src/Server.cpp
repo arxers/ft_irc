@@ -5,11 +5,11 @@ static bool isValidPort(int n) {
 }
 
 static bool isNumber(const string& str) {
-    return (str.find_first_not_of("1234567890") == string::npos);
+    return (!str.empty() && str.find_first_not_of("1234567890") == string::npos);
 }
 
 static bool isAlnum(const string& str) {
-    return (str.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890") == string::npos);
+    return (!str.empty() && str.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890") == string::npos);
 }
 
 static string  strToUpper(string s) {
@@ -85,10 +85,21 @@ int Server::_createSocket() {
         }
         break ;
     }
+
     if (socketFd == -1) {
         freeaddrinfo(res);
         throw std::runtime_error("_createSocket: Failed to bind socket");
     }
+    
+    struct sockaddr_in sockaddr;
+    socklen_t addrLen = sizeof(sockaddr);
+
+    if (getsockname(socketFd, (struct sockaddr*)&sockaddr, &addrLen) == -1) {
+        freeaddrinfo(res);
+        throw std::runtime_error("_createSocket: getsockname() failed");
+    }
+    uint16_t port = ntohs(sockaddr.sin_port);
+    this->_port = toString(port);
 
     if (listen(socketFd, MAX_CLIENTS) == -1) {
         close(socketFd);
@@ -698,7 +709,7 @@ string Server::_generateResponse(Client& client, Message message) {
 }
 
 void    Server::start() {
-    if (this->_name.empty())
+    if (this->_name == "" || this->_port == "" || this->_port == "")
         throw (std::runtime_error("start: Server not initialized"));
 
     this->_listeningSocket = _createSocket();
