@@ -47,7 +47,7 @@ static bool isValidNickname(const string& nickname) {
     return (true);
 }
 
-static void _flushClientBuffer(Client& client) {
+static void flushClientBuffer(Client& client) {
     int fd = client.getSocket();
     string& buf = client.getOutputBuffer();
     size_t  size = buf.size();
@@ -770,7 +770,7 @@ void    Server::start() {
         }
 
         for (clientmap_t::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
-            _flushClientBuffer(it->second);
+            flushClientBuffer(it->second);
 
         if (!this->_disconnecting.empty()) {
             for (vector< pair<int, string > >::iterator it = this->_disconnecting.begin(); it != this->_disconnecting.end(); ++it)
