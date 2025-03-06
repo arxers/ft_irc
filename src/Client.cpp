@@ -103,25 +103,8 @@ void    Client::setPinged(bool pinged) {
     this->_pinged = pinged;
 }
 
-// int         _socketFd;
-// sockaddr_in _addr;
-// string      _inputBuffer;
-// string      _outputBuffer;
-
-// e_client_state _state;
-// string  _nickname;
-// string  _username;
-// string  _realname;
-// string  _ip;
-
-// time_t  _lastActiveTime;
-// time_t  _lastPingTime;
-// bool    _pinged;
-
-// set<string> _channels;
-
 Client::Client() :
-_socketFd(-1), _lastActiveTime(0), _lastPingTime(0), _pinged(false) {}
+_socketFd(-1), _state(UNCONNECTED), _lastActiveTime(0), _lastPingTime(0), _pinged(false) {}
 
 Client::Client(int socketFd, struct sockaddr_in addr) :
 _socketFd(socketFd),

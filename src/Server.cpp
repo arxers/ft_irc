@@ -811,10 +811,7 @@ void    Server::init(const string& name, const string& port, const string& passw
 }
 
 Server::Server() : _listeningSocket(-1), _clientCount(0) {}
-Server::Server(const Server& rhs) {
-    if (this != &rhs)
-        *this = rhs;
-}
+Server::Server(const Server&) {}
 Server& Server::operator=(const Server&) { return (*this); }
 Server::~Server() {
     if (this->_listeningSocket >= 0)

@@ -20,8 +20,8 @@ public:
     vector<string>  getParams() const;
     // bool            isValid() const;
 
-    Message(const string&);
-    Message(const Message&);
+    Message(const string& msg);
+    Message(const Message& rhs);
     Message& operator=(const Message&);
     ~Message();
 };

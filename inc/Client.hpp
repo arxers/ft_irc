@@ -17,6 +17,7 @@ using std::map;
 using std::set;
 
 enum    e_client_state {
+    UNCONNECTED,
     CONNECTED,
     AUTHENTICATED,
     REGISTERED,
