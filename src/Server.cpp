@@ -243,9 +243,9 @@ void Server::_broadcastToClientChannels(Client& client, const string& message, b
         if (!channel)
             continue;
         if (excludeSender)
-            channel->broadcastMessage(":" + client.getPrefix() + " " + message, client.getSocket(), true);
+            channel->broadcastMessage(client.getPrefix() + " " + message, client.getSocket(), true);
         else
-            channel->broadcastMessage(":" + client.getPrefix() + " " + message, client.getSocket(), false);
+            channel->broadcastMessage(client.getPrefix() + " " + message, client.getSocket(), false);
     }
 }
 
@@ -259,7 +259,7 @@ string  Server::_nick(Client& client, const vector<string>& params) {
         return (Numerics::formatMessage(this->_name, ERR_NICKNAMEINUSE, client.getNickname(), params[0], "Nickname is already in use"));
     string reply;
     if (client.getState() == REGISTERED) {
-        reply += ":" + client.getPrefix() + " NICK :" + params[0] + CRLF;
+        reply += client.getPrefix() + " NICK :" + params[0] + CRLF;
         this->_broadcastToClientChannels(client, "NICK :" + params[0], true);
     }
     client.setNickname(params[0]);
@@ -328,7 +328,7 @@ string  Server::_join(Client& client, const vector<string>& params) {
             else if (result == ERR_CHANNELISFULL)
                 reply += Numerics::formatMessage(this->_name, ERR_CHANNELISFULL, client.getNickname(), targetChannelName, "Cannot join channel (+l)");
             else if (result == RPL_SUCCESS) {
-                channel.broadcastMessage(":" + client.getPrefix() + " JOIN " + targetChannelName, client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " JOIN " + targetChannelName, client.getSocket(), false);
                 reply += Numerics::formatMessage(this->_name, RPL_NAMREPLY, client.getNickname(), "@ " + targetChannelName, channel.getNamesList());
                 reply += Numerics::formatMessage(this->_name, RPL_ENDOFNAMES, client.getNickname(), targetChannelName, "End of NAMES list");
             }
@@ -339,7 +339,7 @@ string  Server::_join(Client& client, const vector<string>& params) {
             reply += Numerics::formatMessage(this->_name, RPL_NAMREPLY, client.getNickname(), "@ " + targetChannelName, newChannel.getNamesList());
             reply += Numerics::formatMessage(this->_name, RPL_ENDOFNAMES, client.getNickname(), targetChannelName, "End of NAMES list");
             this->_channels[targetChannelName] = newChannel;
-            this->_channels[targetChannelName].broadcastMessage(":" + client.getPrefix() + " JOIN " + targetChannelName, client.getSocket(), false);
+            this->_channels[targetChannelName].broadcastMessage(client.getPrefix() + " JOIN " + targetChannelName, client.getSocket(), false);
         }
     }
     return (reply);
@@ -367,7 +367,7 @@ string  Server::_part(Client& client, const vector<string>& params) {
             continue ;
         }
         Channel&    channel = this->_channels.find(*channelName)->second;
-        channel.broadcastMessage(":" + client.getPrefix() + " PART " + channel.getName() + message, client.getSocket(), false);
+        channel.broadcastMessage(client.getPrefix() + " PART " + channel.getName() + message, client.getSocket(), false);
         channel.removeClient(client);
         if (channel.isEmpty())
             this->_channels.erase(channel.getName());
@@ -388,7 +388,7 @@ string  Server::_privMsg(Client& client, const vector<string>& params) {
             return (Numerics::formatMessage(this->_name, ERR_NOSUCHNICK, client.getNickname(), "No such nick/channel"));
         if (!client.isInChannel(params[0]))
             return (Numerics::formatMessage(this->_name, ERR_CANNOTSENDTOCHAN, client.getNickname(), params[0], "Cannot send to channel"));
-        it->second.broadcastMessage(":" + client.getPrefix() + " PRIVMSG " + params[0] + " :" + params[1], client.getSocket(), true);
+        it->second.broadcastMessage(client.getPrefix() + " PRIVMSG " + params[0] + " :" + params[1], client.getSocket(), true);
         return ("");
     }
 
@@ -453,7 +453,7 @@ string  Server::_kick(Client& client, const vector<string>& params) {
             continue;
         }
         string  message = params.size() >= 3 ? params[2] : it->second;
-        string formattedMessage = ":" + client.getPrefix() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message;
+        string formattedMessage = client.getPrefix() + " " + "KICK" + " " + channel.getName() + " " + targetClient->getNickname() + " :" + message;
         channel.broadcastMessage(formattedMessage, client.getSocket(), false);
         channel.removeClient(*targetClient);
         if (channel.isEmpty())
@@ -478,17 +478,19 @@ string  Server::_invite(Client& client, const vector<string>& params) {
         if (!client.isInChannel(targetChannelName))
             return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, targetNickname, targetChannelName, "You're not on that channel"));
         Channel& targetChannel = this->_channels[targetChannelName];
-        if (targetChannel.isInviteOnly() && targetChannel.isClientOp(client))
-            return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
+        if (targetChannel.isInviteOnly() && !targetChannel.isClientOp(client))
+            return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), targetChannelName, "You're not channel operator"));
         if (targetChannel.isClientInvited(*targetClient))
             return "";
         targetChannel.addInvitee(*targetClient);
-        targetClient->getOutputBuffer() += Numerics::formatMessage(this->_name, RPL_INVITING, targetNickname, client.getNickname());
+        targetClient->getOutputBuffer() += ":" + client.getPrefix() + " INVITE " + targetNickname + " " + targetChannelName + CRLF;
+        client.getOutputBuffer() += Numerics::formatMessage(this->_name, RPL_INVITING, client.getNickname(), targetNickname, targetChannelName);
     } else { // Channel doesn't exist
         if (this->_pendingInvites[targetChannelName].find(targetClient->getSocket()) != this->_pendingInvites[targetChannelName].end())
             return "";
         this->_pendingInvites[targetChannelName].insert(targetClient->getSocket());
-        targetClient->getOutputBuffer() += Numerics::formatMessage(this->_name, RPL_INVITING, targetNickname, client.getNickname());
+        targetClient->getOutputBuffer() += ":" + client.getPrefix() + " INVITE " + targetNickname + " " + targetChannelName + CRLF;
+        client.getOutputBuffer() += Numerics::formatMessage(this->_name, RPL_INVITING, client.getNickname(), targetNickname, targetChannelName);
     }
     return "";
 }
@@ -510,14 +512,14 @@ string  Server::_topic(Client& client, const vector<string>& params) {
         return (Numerics::formatMessage(this->_name, ERR_NOTONCHANNEL, client.getNickname(), params[0], "You're not on that channel"));
     if (targetChannel.isTopicLocked()) 
         if (!targetChannel.isClientOp(client))
-            return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
+            return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), targetChannelName, "You're not channel operator"));
     if (params[1].empty()) {
         targetChannel.setTopic("");
         
         return ("");
     }
     targetChannel.setTopic(params[1]);
-    targetChannel.broadcastMessage(":" + client.getPrefix() + " TOPIC " + targetChannelName + " :" + params[1], client.getSocket(), false);
+    targetChannel.broadcastMessage(client.getPrefix() + " TOPIC " + targetChannelName + " :" + params[1], client.getSocket(), false);
     return ("");
 }
 
@@ -573,7 +575,7 @@ string  Server::_mode(Client& client, const vector<string>& params) {
     }
 
     if (!channel.isClientOp(client))
-        return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), "You're not channel operator"));
+        return (Numerics::formatMessage(this->_name, ERR_CHANOPRIVSNEEDED, client.getNickname(), channel.getName(), "You're not channel operator"));
 
     string  reply;
     for (size_t i = 0, j = 0; i < modes.size(); ++i) {
@@ -581,19 +583,19 @@ string  Server::_mode(Client& client, const vector<string>& params) {
         if (modes[i] == "+i" || modes[i] == "-i") {
             if (modes[i] == "+i") {
                 channel.setInviteOnly(true);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +i", client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " +i", client.getSocket(), false);
             } else {
                 channel.setInviteOnly(false);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -i", client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " -i", client.getSocket(), false);
             }
         // Set topicLock flag
         } else if (modes[i] == "+t" || modes[i] == "-t") {
             if (modes[i] == "+t") {
                 channel.setTopicLock(true);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +t", client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " +t", client.getSocket(), false);
             } else {
                 channel.setTopicLock(false);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -t", client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " -t", client.getSocket(), false);
             }
         // Set or remove channel key
         } else if (modes[i] == "+k" || modes[i] == "-k") {
@@ -604,11 +606,11 @@ string  Server::_mode(Client& client, const vector<string>& params) {
                     continue ;
                 } else {
                     channel.setKey(modeParams[j++]);
-                    channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +k", client.getSocket(), false);
+                    channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " +k", client.getSocket(), false);
                 }
             } else {
                 channel.setKey("");
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -k", client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " -k", client.getSocket(), false);
             }
         // Add or remove operator
         } else if (j <= 3 && (modes[i] == "+o" || modes[i] == "-o")) {
@@ -620,11 +622,11 @@ string  Server::_mode(Client& client, const vector<string>& params) {
             Client& targetClient = *channel.getClient(modeParams[j]);
             if (modes[i] == "+o" && !channel.isClientOp(targetClient)) {
                 channel.addOperator(targetClient);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +o " + targetClient.getNickname(), client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " +o " + targetClient.getNickname(), client.getSocket(), false);
             }
             else if (modes[i] == "-o") {
                 channel.removeOperator(targetClient);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -o " + targetClient.getNickname(), client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " -o " + targetClient.getNickname(), client.getSocket(), false);
             }
             j++;
         // Set or remove channel user limit
@@ -638,10 +640,10 @@ string  Server::_mode(Client& client, const vector<string>& params) {
                 if (n > 2147483647)
                     n = 2147483647;
                 channel.setUserLimit(n);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +l " + toString(n), client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " +l " + toString(n), client.getSocket(), false);
             } else if (modes[i] == "-l") {
                 channel.setUserLimit(0);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -l", client.getSocket(), false);
+                channel.broadcastMessage(client.getPrefix() + " MODE " + channel.getName() + " -l", client.getSocket(), false);
             }
         } else {
             reply += (Numerics::formatMessage(this->_name, ERR_UNKNOWNMODE, client.getNickname(), &modes[i][1], "is unknown mode char to me for " + channel.getName()));

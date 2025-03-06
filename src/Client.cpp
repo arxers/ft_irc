@@ -60,7 +60,7 @@ const string&  Client::getUsername() const {
 }
 
 string  Client::getPrefix() const {
-    return (this->_nickname + "!~" + this->_username + "@" + inet_ntoa(this->_addr.sin_addr));
+    return (":" + this->_nickname + "!~" + this->_username + "@" + inet_ntoa(this->_addr.sin_addr));
 }
 
 set<string> Client::getChannels() const {
