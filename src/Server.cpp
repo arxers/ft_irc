@@ -552,7 +552,7 @@ string  Server::_mode(Client& client, const vector<string>& params) {
         } else if (modes[i] == "+t" || modes[i] == "-t") {
             if (modes[i] == "+t") {
                 channel.setTopicLock(true);
-                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +i", client.getSocket(), false);
+                channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " +t", client.getSocket(), false);
             } else {
                 channel.setTopicLock(false);
                 channel.broadcastMessage(":" + client.getPrefix() + " MODE " + channel.getName() + " -t", client.getSocket(), false);
