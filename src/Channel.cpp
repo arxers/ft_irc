@@ -83,40 +83,16 @@ void    Channel::removeOperator(Client& client) {
     this->_operators.erase(client.getSocket());
 }
 
-void    Channel::broadcastMessage(const string& message, const string& command, const string& sender) {
-    if (this->_userCount < 1)
-        return ;
-    for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        string  formattedMessage = ":" + sender + " " + command + " " + this->_name + " :" + message + "\r\n";
-        string& clientBuffer = it->second->getOutputBuffer();
-        clientBuffer += formattedMessage;
-    }
-}
-
-// :jaslim!~j@203.149.201.178 PART #testtestaaa
-// :jjjj!~j@203.149.201.178 PART #test123123 :param
-
-void    Channel::broadcastMessage(const string& message, const string& command, const Client& sender) {
-    if (this->_userCount < 1)
-        return ;
-    for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
-        if (it->first != sender.getSocket()) {
-            string formattedMessage = ":" + sender.getNickname() + " " + command + " " + this->_name + " :" + message + "\r\n";
-            string& clientBuffer = it->second->getOutputBuffer();
-            clientBuffer += formattedMessage;
-        }
-    }
-}
-
-void    Channel::broadcastMessage(const string& message) {
+void    Channel::broadcastMessage(const string& message, int fd, bool excludeSender) {
     if (this->_userCount < 1)
         return ;
     for (std::map<int, Client*>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
         Client* client = it->second;
         if (!client)
             continue ;
-        string& clientBuffer = client->getOutputBuffer();
-        clientBuffer += message + CRLF;
+        if (excludeSender && it->first == fd)
+            continue ;
+        client->getOutputBuffer() += message + CRLF;
     }
 }
 

@@ -40,9 +40,7 @@ public:
     void    addOperator(Client& client);
     void    removeOperator(Client& client);
 
-    void    broadcastMessage(const string& message, const string& command, const string& sender);
-    void    broadcastMessage(const string& message, const string& command, const Client& client);
-    void    broadcastMessage(const string& message);
+    void    broadcastMessage(const string& message, int fd, bool excludeSender);
 
     void    setInviteOnly(bool inviteOnly);
     void    setTopicLock(bool topicLock);

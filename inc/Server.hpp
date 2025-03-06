@@ -97,6 +97,8 @@ private:
     bool        _hasChannel(const string& channel);
 
     string  _sendWelcomeBurst(Client& client);
+    void    _broadcastToClientChannels(Client& client, const string& message, bool excludeSender);
+    
 
     // Commands
     string  _cap(const vector<string>& params);
